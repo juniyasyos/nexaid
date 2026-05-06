@@ -652,36 +652,36 @@ class ApplicationUserSyncService
     }
 
     /**
-     * Get all users that currently have at least one role for the application.
+     * Get IAM users for the application.
+     *
+     * When a specific user ID is provided we scope the query to that one user
+     * so relationship changes do not fan out to the full application audience.
      */
     protected function getIamUsers(Application $application, ?int $userId = null): array
     {
-        // include users who either have a direct application role (for
-        // backwards compatibility) or who are connected to profiles that
-        // contain roles for this application.  the `effectiveApplicationRoles`
-        // helper on the model simplifies gathering the slugs.
         // WARNING: the inner queries below are *sensitive* to column
         // qualification.  both `iam_roles` and the pivot `iam_user_application_roles`
         // define an `application_id` column.  the previous implementation used a
         // plain `$q2->where('application_id', $id)` which produced ambiguous SQL
         // and caused a runtime exception in the logs.  do **not** revert this
         // block to an unqualified condition.
-        $userQuery = User::query()
-            ->where(function ($q) use ($application, $userId) {
-                // filter by application via the roles table (direct roles or profiles)
-                // plus always include a targeted user ID even if they do not yet
-                // have any application roles.
+        $userQuery = User::query();
+
+        if ($userId !== null) {
+            $userQuery->whereKey($userId);
+        } else {
+            // include users who either have a direct application role (for
+            // backwards compatibility) or who are connected to profiles that
+            // contain roles for this application.
+            $userQuery->where(function ($q) use ($application) {
                 $q->whereHas('applicationRoles', function ($q2) use ($application) {
                     $q2->where('iam_roles.application_id', $application->id);
                 })
                     ->orWhereHas('accessProfiles.roles', function ($q3) use ($application) {
                         $q3->where('iam_roles.application_id', $application->id);
                     });
-
-                if ($userId !== null) {
-                    $q->orWhere('id', $userId);
-                }
             });
+        }
 
         // OPTIMIZATION: Eager load all relationships to avoid N+1 queries
         $users = $userQuery

@@ -314,6 +314,42 @@ it('pushes IAM users to client when user_sync_mode is push', function () {
     });
 });
 
+it('pushes only the targeted IAM user when a user id is provided', function () {
+    config(['iam.user_sync_mode' => 'push']);
+
+    $app = Application::factory()->create([
+        'callback_url' => 'http://client.test',
+        'app_key' => 'targeted',
+    ]);
+
+    $role = ApplicationRole::create([
+        'application_id' => $app->id,
+        'slug' => 'direct',
+        'name' => 'Direct Role',
+    ]);
+
+    $targetUser = User::factory()->create(['nip' => '1001', 'email' => 'target@example.com']);
+    $targetUser->applicationRoles()->attach($role->id, ['application_id' => $app->id]);
+
+    $otherUser = User::factory()->create(['nip' => '1002', 'email' => 'other@example.com']);
+    $otherUser->applicationRoles()->attach($role->id, ['application_id' => $app->id]);
+
+    Http::fake([
+        'http://client.test/api/iam/push-users*' => Http::response(['success' => true], 200),
+    ]);
+
+    $service = new ApplicationUserSyncService();
+    $service->syncUsers($app, $targetUser->id);
+
+    Http::assertSent(function ($request) use ($targetUser) {
+        $users = collect($request->data()['users'] ?? []);
+
+        return $request->method() === 'POST'
+            && $users->count() === 1
+            && $users->pluck('email')->all() === [$targetUser->email];
+    });
+});
+
 it('includes users with a direct role when computing iam_users (no SQL ambiguity)', function () {
     config(['iam.user_sync_mode' => 'push']);
 
