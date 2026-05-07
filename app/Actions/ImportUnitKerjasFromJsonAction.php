@@ -3,7 +3,9 @@
 namespace App\Actions;
 
 use App\Models\UnitKerja;
+use Filament\Notifications\Notification;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Throwable;
 
@@ -48,11 +50,13 @@ class ImportUnitKerjasFromJsonAction
                     ]);
                 }
 
-                dd([
-                    'index' => $index,
-                    'payload' => $unitData,
-                    'result' => $result,
-                ]);
+                Notification::make()
+                    ->title($result['created']
+                        ? 'Unit kerja berhasil dibuat'
+                        : 'Unit kerja berhasil diperbarui')
+                    ->body($unitData['unit_name'] ?? $unitData['slug'] ?? 'N/A')
+                    ->success()
+                    ->send();
 
                 DB::commit();
             } catch (Throwable $e) {

@@ -2,15 +2,13 @@
 
 namespace App\Filament\Panel\Resources\UnitKerjas\Pages;
 
-use App\Jobs\ImportUnitKerjasFromJsonJob;
+use App\Actions\ImportUnitKerjasFromJsonAction;
 use App\Filament\Panel\Resources\UnitKerjas\UnitKerjaResource;
 use App\Jobs\PushUnitKerjaToClient;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Storage;
 
 class ListUnitKerjas extends ListRecords
@@ -77,15 +75,20 @@ class ListUnitKerjas extends ListRecords
                             return;
                         }
 
-                        $importId = (string) Str::uuid();
-                        $userId = (int) auth()->id();
                         $skipErrors = (bool) ($data['skip_errors'] ?? true);
+                        $result = app(ImportUnitKerjasFromJsonAction::class)->execute($unitsData, $skipErrors);
 
-                        ImportUnitKerjasFromJsonJob::dispatch($importId, $timestampedName, $userId, $skipErrors);
+                        $disk->delete($timestampedName);
 
                         Notification::make()
-                            ->title('Import unit kerja dijadwalkan')
-                            ->body('Progres import akan tampil di komponen melayang saat job berjalan. File Path Upload: ' . $timestampedName)
+                            ->title('Import unit kerja selesai')
+                            ->body(sprintf(
+                                'Total: %d, dibuat: %d, diperbarui: %d, gagal: %d',
+                                $result['total'] ?? 0,
+                                $result['created'] ?? 0,
+                                $result['updated'] ?? 0,
+                                $result['failed'] ?? 0,
+                            ))
                             ->success()
                             ->send();
                     } catch (\Throwable $e) {
