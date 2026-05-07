@@ -464,6 +464,7 @@ class UsersTable
                     ->icon('heroicon-o-user-group')
                     ->color('info')
                     ->slideOver()
+                    ->modalWidth('7xl')
                     ->relationManager(AccessProfilesRelationManager::make()),
                 ActionGroup::make([
                     ViewAction::make()

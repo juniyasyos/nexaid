@@ -37,14 +37,17 @@ class AccessProfilesRelationManager extends RelationManager
                     ->label('Slug')
                     ->searchable()
                     ->badge()
+                    ->hidden()
                     ->color('gray')
                     ->fontFamily('mono')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->size('sm'),
                 TextColumn::make('roles_count')
                     ->label('Roles Included')
                     ->counts('roles')
                     ->badge()
                     ->color('info')
+                    ->toggleable(isToggledHiddenByDefault: true)
                     ->sortable(),
                 IconColumn::make('is_system')
                     ->label('System')
@@ -65,7 +68,7 @@ class AccessProfilesRelationManager extends RelationManager
                     ->label('Assigned At')
                     ->dateTime('M d, Y H:i')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->headerActions([
                 AttachAction::make()
