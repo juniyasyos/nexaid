@@ -55,41 +55,59 @@ class IamRolesSeeder extends Seeder
     private function getRolesData(): array
     {
         return [
-            // 'siimut' => [
-            //     [
-            //         'slug' => 'super_admin',
-            //         'name' => 'Super Admin SIIMUT',
-            //         'description' => 'Full administrative access to SIIMUT system',
-            //         'is_system' => true,
-            //     ],
-            //     [
-            //         'slug' => 'tim_mutu',
-            //         'name' => 'Tim Mutu',
-            //         'description' => 'Tim Mutu dengan akses monitoring dan reporting',
-            //         'is_system' => false,
-            //     ],
-            //     [
-            //         'slug' => 'unit_kerja',
-            //         'name' => 'Unit Kerja',
-            //         'description' => 'Akses unit kerja untuk input data mutu',
-            //         'is_system' => false,
-            //     ],
-            //     [
-            //         'slug' => 'validator',
-            //         'name' => 'Validator PIC',
-            //         'description' => 'Akses validator untuk validasi data mutu',
-            //         'is_system' => false,
-            //     ],
-            // ],
+            'siimut' => [
+                [
+                    'slug' => 'super_admin',
+                    'name' => 'Super Administrator',
+                    'description' => 'Memiliki akses penuh untuk mengelola seluruh konfigurasi, data, pengguna, dan fitur pada sistem SIIMUT.',
+                    'is_system' => true,
+                ],
+                [
+                    'slug' => 'tim_mutu',
+                    'name' => 'Koordinator Mutu',
+                    'description' => 'Bertugas melakukan monitoring, evaluasi, verifikasi, serta pengelolaan data mutu pada unit kerja terkait.',
+                    'is_system' => false,
+                ],
+                [
+                    'slug' => 'pengumpul_data',
+                    'name' => 'Petugas Input Data Mutu',
+                    'description' => 'Bertanggung jawab melakukan pengumpulan, pengisian, dan pembaruan data mutu sesuai kebutuhan pelaporan.',
+                    'is_system' => false,
+                ],
+                [
+                    'slug' => 'validator_pic',
+                    'name' => 'Validator Data Mutu',
+                    'description' => 'Melakukan pemeriksaan dan validasi terhadap data mutu sebelum diproses atau dipublikasikan.',
+                    'is_system' => false,
+                ],
+            ],
 
-            // 'incident-report.app' => [
-            //     [
-            //         'slug' => 'admin',
-            //         'name' => 'Administrator Incident Report',
-            //         'description' => 'Full administrative access to incident reporting',
-            //         'is_system' => true,
-            //     ],
-            // ],
+            'incident-reporting' => [
+                [
+                    'slug' => 'super_admin',
+                    'name' => 'Super Administrator Incident Report',
+                    'description' => 'Memiliki akses penuh untuk mengelola sistem pelaporan insiden, pengguna, data, dan pengaturan aplikasi.',
+                    'is_system' => true,
+                ],
+                [
+                    'slug' => 'tim_mutu',
+                    'name' => 'Tim Investigasi & Mutu',
+                    'description' => 'Bertugas melakukan monitoring, investigasi, tindak lanjut, dan evaluasi terhadap laporan insiden yang masuk.',
+                    'is_system' => false,
+                ],
+                [
+                    'slug' => 'kepala_unit',
+                    'name' => 'Kepala Unit / Penanggung Jawab',
+                    'description' => 'Bertugas melakukan pemantauan, evaluasi, persetujuan, serta tindak lanjut terhadap laporan insiden pada unit kerja yang dipimpin.',
+                    'is_system' => false,
+                ],
+                [
+                    'slug' => 'pelapor',
+                    'name' => 'Pelapor Insiden',
+                    'description' => 'Dapat membuat dan mengelola laporan insiden sesuai kewenangan yang diberikan.',
+                    'is_system' => false,
+                ],
+            ],
         ];
     }
 }

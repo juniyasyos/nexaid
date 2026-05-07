@@ -31,6 +31,16 @@ class ApplicationsTable
     public static function configure(Table $table): Table
     {
         return $table
+            ->heading('Manajemen Aplikasi IAM')
+            ->description('Kelola integrasi aplikasi, sinkronisasi hak akses, konfigurasi autentikasi, serta status koneksi aplikasi pada sistem IAM.')
+            ->defaultSort('updated_at', 'asc')
+            ->poll('10s')
+            ->defaultPaginationPageOption(25)
+            ->striped()
+            ->persistFiltersInSession()
+            ->persistSearchInSession()
+            ->persistSortInSession()
+            ->searchPlaceholder('Cari nama aplikasi, app key, atau callback URL...')
             ->columns([
                 TextColumn::make('name')
                     ->label('Application Name')

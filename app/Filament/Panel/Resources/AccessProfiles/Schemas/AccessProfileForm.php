@@ -34,7 +34,7 @@ class AccessProfileForm
                                     ->disabled()
                                     ->dehydrated(false)
                                     ->helperText('Generated automatically once and cannot be changed.')
-                                    ->suffixIcon('heroicon-m-finger-print'),
+                                    ->prefixIcon('heroicon-m-finger-print'),
 
                                 Grid::make(2)->schema([
                                     TextInput::make('name')
@@ -64,7 +64,7 @@ class AccessProfileForm
                                         ->placeholder('quality_team, manajemen_rs, it_support')
                                         ->helperText('Used internally by the IAM system. Lowercase letters, numbers, dashes and underscores only.')
                                         ->dehydrateStateUsing(fn(string $state): string => Str::lower($state))
-                                        ->suffixIcon('heroicon-m-finger-print'),
+                                        ->prefixIcon('heroicon-m-finger-print'),
                                 ]),
 
                                 Grid::make(2)->schema([

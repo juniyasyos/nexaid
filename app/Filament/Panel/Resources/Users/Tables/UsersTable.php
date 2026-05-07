@@ -2,7 +2,6 @@
 
 namespace App\Filament\Panel\Resources\Users\Tables;
 
-use App\Filament\Panel\Resources\Users\RelationManagers\AccessProfilesRelationManager;
 use App\Models\User;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -13,23 +12,19 @@ use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\ToggleColumn;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\Filter;
-use Filament\Tables\Filters\SelectFilter;
-use Filament\Tables\Filters\TernaryFilter;
 use Filament\Tables\Table;
 use Guava\FilamentModalRelationManagers\Actions\RelationManagerAction;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
-use Illuminate\Support\Facades\Auth;
-use STS\FilamentImpersonate\Actions\Impersonate as ImpersonateTableAction;
-use App\Jobs\SyncApplicationUsers;
-use App\Domain\Iam\Models\Application;
-use Dom\Text;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
 use Illuminate\Support\Carbon;
+use App\Filament\Panel\Resources\Users\RelationManagers\AccessProfilesRelationManager;
+use Filament\Schemas\Components\Grid;
+use Filament\Schemas\Components\Section;
+use Filament\Tables\Enums\FiltersLayout;
 
 class UsersTable
 {
@@ -40,7 +35,6 @@ class UsersTable
             ->description('Kelola akun IAM, hak akses aplikasi, dan status keamanan pengguna.')
             ->defaultSort('updated_at', 'desc')
             ->poll('2s')
-            ->paginated([10, 25, 50, 100, 'all'])
             ->defaultPaginationPageOption(25)
             ->striped()
             ->persistFiltersInSession()
@@ -266,37 +260,197 @@ class UsersTable
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
             ->filters([
-                SelectFilter::make('status')
-                    ->label('Status pengguna')
-                    ->options([
-                        'active' => 'Aktif',
-                        'inactive' => 'Nonaktif',
-                        'suspended' => 'Ditangguhkan',
+
+                Filter::make('advanced_filters')
+                    ->schema([
+
+                        Section::make('Status & Keamanan')
+                            ->description('Filter terkait status akun dan keamanan pengguna')
+                            ->schema([
+
+                                Grid::make(3)
+                                    ->schema([
+
+                                        Select::make('status')
+                                            ->label('Status Pengguna')
+                                            ->native(false)
+                                            ->options([
+                                                'active' => 'Aktif',
+                                                'inactive' => 'Nonaktif',
+                                                'suspended' => 'Ditangguhkan',
+                                            ]),
+
+                                        Select::make('session_status')
+                                            ->label('Status Sesi')
+                                            ->native(false)
+                                            ->options([
+                                                'online' => 'Online',
+                                                'offline' => 'Offline',
+                                                'never_logged_in' => 'Belum Pernah Login',
+                                            ]),
+
+                                        Select::make('mfa')
+                                            ->label('MFA')
+                                            ->native(false)
+                                            ->options([
+                                                'enabled' => 'MFA Aktif',
+                                                'disabled' => 'MFA Tidak Aktif',
+                                            ]),
+                                    ]),
+                            ])
+                            ->columns(1)
+                            ->collapsible(),
+
+                        Section::make('Relasi & Hak Akses')
+                            ->description('Filter role bundle dan unit kerja')
+                            ->schema([
+
+                                Grid::make(2)
+                                    ->schema([
+
+                                        Select::make('access_profiles')
+                                            ->label('Role / Access Profile')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->relationship('accessProfiles', 'name'),
+
+                                        Select::make('unit_kerjas')
+                                            ->label('Unit Kerja')
+                                            ->multiple()
+                                            ->searchable()
+                                            ->preload()
+                                            ->relationship('unitKerjas', 'unit_name'),
+                                    ]),
+                            ])
+                            ->collapsible(),
+
+                        Section::make('Rentang Waktu')
+                            ->description('Filter berdasarkan tanggal aktivitas pengguna')
+                            ->schema([
+
+                                Grid::make(2)
+                                    ->schema([
+
+                                        DatePicker::make('login_from')
+                                            ->label('Login Dari'),
+
+                                        DatePicker::make('login_until')
+                                            ->label('Login Sampai'),
+
+                                        DatePicker::make('created_from')
+                                            ->label('Dibuat Dari'),
+
+                                        DatePicker::make('created_until')
+                                            ->label('Dibuat Sampai'),
+                                    ]),
+                            ])
+                            ->collapsible(),
+
+                        Section::make('Quick Filters')
+                            ->description('Filter cepat untuk identifikasi akun tertentu')
+                            ->schema([
+
+                                Grid::make(2)
+                                    ->schema([
+
+                                        Select::make('quick_filter')
+                                            ->label('Preset Filter')
+                                            ->native(false)
+                                            ->options([
+                                                'secure_users' => 'Pengguna Aman',
+                                                'unused_accounts' => 'Akun Tidak Digunakan',
+                                            ]),
+                                    ]),
+                            ])
+                            ->collapsible(),
+
                     ])
-                    ->placeholder('Semua'),
+                    ->query(function (Builder $query, array $data) {
 
-                TernaryFilter::make('mfa_enabled')
-                    ->label('MFA')
-                    ->queries(
-                        true: fn(Builder $query) => $query->whereNotNull('two_factor_secret'),
-                        false: fn(Builder $query) => $query->whereNull('two_factor_secret'),
-                        blank: fn(Builder $query) => $query,
-                    )
-                    ->trueLabel('MFA aktif')
-                    ->falseLabel('MFA tidak aktif')
-                    ->placeholder('Semua'),
+                        // STATUS
+                        $query->when(
+                            $data['status'] ?? null,
+                            fn($q, $value) => $q->where('status', $value)
+                        );
 
-                Filter::make('never_logged_in')
-                    ->label('Belum pernah login')
-                    ->query(function (Builder $query) {
-                        return $query->whereNotExists(function ($subQuery) {
-                            $subQuery->selectRaw('1')
-                                ->from('sessions')
-                                ->whereColumn('sessions.user_id', 'users.id');
-                        });
-                    }),
-            ])
-            ->filtersFormColumns(1)
+                        // MFA
+                        $query->when(
+                            $data['mfa'] ?? null,
+                            fn($q, $value) => $value === 'enabled'
+                                ? $q->whereNotNull('two_factor_secret')
+                                : $q->whereNull('two_factor_secret')
+                        );
+
+                        // ROLE
+                        $query->when(
+                            $data['access_profiles'] ?? null,
+                            fn($q, $value) => $q->whereHas(
+                                'accessProfiles',
+                                fn($sub) => $sub->whereIn('access_profiles.id', $value)
+                            )
+                        );
+
+                        // UNIT KERJA
+                        $query->when(
+                            $data['unit_kerjas'] ?? null,
+                            fn($q, $value) => $q->whereHas(
+                                'unitKerjas',
+                                fn($sub) => $sub->whereIn('unit_kerja.id', $value)
+                            )
+                        );
+
+                        // LOGIN DATE
+                        $query
+                            ->when(
+                                $data['login_from'] ?? null,
+                                fn($q, $date) => $q->whereDate('last_login_at', '>=', $date)
+                            )
+                            ->when(
+                                $data['login_until'] ?? null,
+                                fn($q, $date) => $q->whereDate('last_login_at', '<=', $date)
+                            );
+
+                        // CREATED DATE
+                        $query
+                            ->when(
+                                $data['created_from'] ?? null,
+                                fn($q, $date) => $q->whereDate('created_at', '>=', $date)
+                            )
+                            ->when(
+                                $data['created_until'] ?? null,
+                                fn($q, $date) => $q->whereDate('created_at', '<=', $date)
+                            );
+
+                        // QUICK FILTERS
+                        $query->when(
+                            $data['quick_filter'] ?? null,
+                            function ($q, $value) {
+
+                                match ($value) {
+
+                                    'secure_users' => $q
+                                        ->where('status', 'active')
+                                        ->whereNotNull('two_factor_secret')
+                                        ->whereHas('accessProfiles'),
+
+                                    'unused_accounts' => $q
+                                        ->where('status', 'active')
+                                        ->whereNull('last_login_at')
+                                        ->where('created_at', '<', now()->subDays(30)),
+
+                                    default => null,
+                                };
+                            }
+                        );
+
+                        return $query;
+                    })
+                    ->columnSpanFull(),
+
+            ], layout: FiltersLayout::Modal)
+            ->filtersFormWidth('7xl')
+            ->filtersFormColumns(2)
             ->recordActions([
                 // ImpersonateTableAction::make()
                 //     ->label('Impersonate')

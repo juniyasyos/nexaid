@@ -7,6 +7,7 @@ use App\Models\User;
 use App\Models\UnitKerja;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Str;
 use Throwable;
 
 class ImportUsersFromJsonAction
@@ -32,6 +33,29 @@ class ImportUsersFromJsonAction
             try {
                 DB::beginTransaction();
 
+                $beforeData = null;
+                $actionType = 'create';
+
+                // Ambil data sebelum update/create
+                if (! empty($userData['id'])) {
+                    $existingUser = User::with(['accessProfiles', 'unitKerjas'])
+                        ->find($userData['id']);
+
+                    if ($existingUser) {
+                        $actionType = 'update';
+
+                        $beforeData = [
+                            'user' => $existingUser->toArray(),
+                            'roles' => $existingUser->accessProfiles
+                                ->pluck('name')
+                                ->toArray(),
+                            'unit_kerjas' => $existingUser->unitKerjas
+                                ->pluck('name')
+                                ->toArray(),
+                        ];
+                    }
+                }
+
                 $user = User::updateOrCreate(
                     ['id' => $userData['id'] ?? null],
                     $this->sanitizeUserData($userData)
@@ -39,6 +63,7 @@ class ImportUsersFromJsonAction
 
                 if ($user->wasRecentlyCreated) {
                     $created++;
+                    $actionType = 'create';
                 } else {
                     $updated++;
                 }
@@ -51,6 +76,32 @@ class ImportUsersFromJsonAction
                 // Handle unit_kerjas assignment
                 if (! empty($userData['unit_kerjas']) && is_array($userData['unit_kerjas'])) {
                     $this->syncUnitKerjas($user, $userData['unit_kerjas'], $unitKerjasNotFound);
+                }
+
+                // Refresh relasi terbaru
+                $user->load(['accessProfiles', 'unitKerjas']);
+
+                $afterData = [
+                    'user' => $user->toArray(),
+                    'roles' => $user->accessProfiles
+                        ->pluck('name')
+                        ->toArray(),
+                    'unit_kerjas' => $user->unitKerjas
+                        ->pluck('name')
+                        ->toArray(),
+                ];
+
+                if ($userData['name'] == 'Agung Sunaryo, S.Kom') {
+                    dd([
+                        'action' => $actionType,
+                        'is_created' => $user->wasRecentlyCreated,
+
+                        'before' => $beforeData,
+
+                        'after' => $afterData,
+
+                        'incoming_payload' => $userData,
+                    ]);
                 }
 
                 DB::commit();
@@ -111,6 +162,7 @@ class ImportUsersFromJsonAction
         ];
     }
 
+
     /**
      * Sync user access profiles
      * Maps the "roles" array from JSON to AccessProfiles with matching slugs
@@ -124,12 +176,20 @@ class ImportUsersFromJsonAction
     {
         $accessProfileIds = [];
 
-        foreach ($rolesArray as $roleSlug) {
-            // Find AccessProfile by slug that matches the role key
-            $accessProfile = AccessProfile::where('slug', $roleSlug)->first();
+        // Normalize role slugs and prepare for efficient lookup
+        $normalizedRoles = array_values(array_filter(array_map(fn($r) => is_scalar($r) ? trim((string) $r) : null, $rolesArray)));
 
-            if ($accessProfile) {
-                $accessProfileIds[] = $accessProfile->id;
+        if (count($normalizedRoles) === 0) {
+            // If no valid roles provided, detach all profiles
+            $user->accessProfiles()->sync([]);
+            return;
+        }
+
+        $profiles = AccessProfile::whereIn('slug', $normalizedRoles)->get()->keyBy('slug');
+
+        foreach ($normalizedRoles as $roleSlug) {
+            if (isset($profiles[$roleSlug])) {
+                $accessProfileIds[] = $profiles[$roleSlug]->id;
             } else {
                 $notFound[] = $roleSlug;
             }
@@ -154,17 +214,17 @@ class ImportUsersFromJsonAction
         foreach ($unitKerjas as $unitKerjaData) {
             $unitKerja = null;
 
-            // Try to find by id first
-            if (isset($unitKerjaData['id'])) {
-                $unitKerja = UnitKerja::find($unitKerjaData['id']);
-            }
-            // Try to find by slug
-            elseif (isset($unitKerjaData['slug'])) {
+            // Prefer slug / name from payload because source IDs can differ from local IDs
+            if (isset($unitKerjaData['slug'])) {
                 $unitKerja = UnitKerja::where('slug', $unitKerjaData['slug'])->first();
             }
             // Try to find by name
             elseif (isset($unitKerjaData['unit_name'])) {
                 $unitKerja = UnitKerja::where('unit_name', $unitKerjaData['unit_name'])->first();
+            }
+            // Fallback to id only if no slug/name match is available
+            elseif (isset($unitKerjaData['id'])) {
+                $unitKerja = UnitKerja::find($unitKerjaData['id']);
             }
             // If it's just a string (id or slug), try both
             elseif (is_string($unitKerjaData)) {

@@ -67,24 +67,24 @@ class AccessProfileSeeder extends Seeder
 
                     $role = $existingRoles->firstWhere('slug', $roleData['slug']);
 
-                    if (! $role) {
-                        $role = ApplicationRole::create([
-                            'application_id' => $appId,
-                            'slug' => $roleData['slug'],
-                            'name' => $roleData['name'] ?? ucfirst(str_replace(['_', '-'], ' ', $roleData['slug'])),
-                            'description' => $roleData['description'] ?? 'Akses peran yang diatur oleh IAM',
-                            'is_system' => false,
-                        ]);
+                    // if (! $role) {
+                    //     $role = ApplicationRole::create([
+                    //         'application_id' => $appId,
+                    //         'slug' => $roleData['slug'],
+                    //         'name' => $roleData['name'] ?? ucfirst(str_replace(['_', '-'], ' ', $roleData['slug'])),
+                    //         'description' => $roleData['description'] ?? 'Akses peran yang diatur oleh IAM',
+                    //         'is_system' => false,
+                    //     ]);
 
-                        // update cache (penting biar gak miss di loop berikutnya)
-                        if ($roles->has($appId)) {
-                            $roles[$appId]->push($role);
-                        } else {
-                            $roles[$appId] = collect([$role]);
-                        }
+                    //     // update cache (penting biar gak miss di loop berikutnya)
+                    //     if ($roles->has($appId)) {
+                    //         $roles[$appId]->push($role);
+                    //     } else {
+                    //         $roles[$appId] = collect([$role]);
+                    //     }
 
-                        $this->command->info("  ℹ️ Created role '{$roleData['slug']}' for app '{$appKey}'");
-                    }
+                    //     $this->command->info("  ℹ️ Created role '{$roleData['slug']}' for app '{$appKey}'");
+                    // }
 
                     $roleIds[] = $role->id;
                 }

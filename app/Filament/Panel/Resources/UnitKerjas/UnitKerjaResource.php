@@ -86,6 +86,7 @@ class UnitKerjaResource extends Resource
     public static function table(Table $table): Table
     {
         return $table
+            ->poll('2s')
             ->columns(UnitKerjasTable::columns())
             ->filters(UnitKerjasTable::filters())
             ->actions(UnitKerjasTable::actions())

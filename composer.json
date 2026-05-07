@@ -81,6 +81,8 @@
         ],
         "setup": [
             "@php artisan migrate:fresh --seed",
+            "@php artisan admin:pass",
+            "@php artisan db:seed",
             "@php artisan optimize:clear"
         ]
     },

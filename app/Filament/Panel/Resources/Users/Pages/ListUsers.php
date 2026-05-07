@@ -4,13 +4,13 @@ namespace App\Filament\Panel\Resources\Users\Pages;
 
 use App\Domain\Iam\Models\Application;
 use App\Filament\Panel\Resources\Users\UserResource;
+use App\Jobs\ImportUsersFromJsonJob;
 use App\Jobs\SyncApplicationUsers;
 use App\Models\User;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\ListRecords;
-use App\Actions\ImportUsersFromJsonAction;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -30,7 +30,10 @@ class ListUsers extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Pengguna')
+                ->icon('heroicon-m-plus')
+                ->color('primary'),
 
             Action::make('importFromJson')
                 ->label('Import Pengguna (JSON)')
@@ -63,58 +66,24 @@ class ListUsers extends ListRecords
                                 ->send();
                             return;
                         }
+                        $userId = auth()->id();
 
-                        $jsonContent = Storage::disk('s3')->get($fileName);
-                        $usersData = json_decode($jsonContent, true);
-
-                        if (!is_array($usersData)) {
+                        if (! $userId) {
                             Notification::make()
-                                ->title('Format JSON tidak valid')
-                                ->body('File harus berisi array JSON.')
+                                ->title('Gagal menjadwalkan import')
+                                ->body('Pengguna tidak terautentikasi.')
                                 ->danger()
                                 ->send();
                             return;
                         }
 
-                        $action = new ImportUsersFromJsonAction();
-                        $result = $action->execute($usersData);
+                        ImportUsersFromJsonJob::dispatch($fileName, $userId);
 
-                        // Buat notifikasi hasil
-                        $title = "Import Pengguna Selesai";
-                        $message = sprintf(
-                            "Total: %d | Dibuat: %d | Diperbarui: %d | Gagal: %d",
-                            $result['total'],
-                            $result['created'],
-                            $result['updated'],
-                            $result['failed']
-                        );
-
-                        if ($result['failed'] > 0) {
-                            $errorDetails = collect($result['errors'])
-                                ->map(fn($err) => sprintf(
-                                    "Baris %d (%s): %s",
-                                    $err['row'],
-                                    $err['nip'],
-                                    $err['error']
-                                ))
-                                ->join("\n");
-
-                            Notification::make()
-                                ->title($title)
-                                ->body($message . "\n\nError:\n" . $errorDetails)
-                                ->warning()
-                                ->duration(10)
-                                ->send();
-                        } else {
-                            Notification::make()
-                                ->title($title)
-                                ->body($message)
-                                ->success()
-                                ->send();
-                        }
-
-                        // Cleanup dari MinIO
-                        Storage::disk('s3')->delete($fileName);
+                        Notification::make()
+                            ->title('Job import pengguna dijadwalkan')
+                            ->body('Anda akan menerima notifikasi setelah proses selesai.')
+                            ->success()
+                            ->send();
                     } catch (\Throwable $e) {
                         Notification::make()
                             ->title('Error saat import')

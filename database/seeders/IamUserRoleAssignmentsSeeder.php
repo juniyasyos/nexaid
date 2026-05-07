@@ -79,7 +79,7 @@ class IamUserRoleAssignmentsSeeder extends Seeder
                     'nip' => $user->nip,
                     'roles' => [
                         'siimut' => ['super_admin'],
-                        'incident-report.app' => ['admin'],
+                        'incident-reporting' => ['super_admin'],
                     ],
                 ];
             } else {

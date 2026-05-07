@@ -13,7 +13,10 @@ class ListApplications extends ListRecords
     protected function getHeaderActions(): array
     {
         return [
-            CreateAction::make(),
+            CreateAction::make()
+                ->label('Tambah Aplikasi')
+                ->icon('heroicon-m-plus')
+                ->color('primary'),
         ];
     }
 }

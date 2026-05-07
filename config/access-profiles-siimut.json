@@ -2,16 +2,19 @@
     {
         "profile": {
             "slug": "super_admin",
-            "name": "Super Admin",
-            "description": "Memiliki hak akses penuh terhadap seluruh fitur dan konfigurasi sistem.",
+            "name": "Super Administrator Sistem",
+            "description": "Memiliki hak akses penuh untuk mengelola seluruh konfigurasi, pengguna, data, dan fitur sistem.",
             "is_system": true
         },
         "apps": {
             "siimut": [
                 {
-                    "slug": "super_admin",
-                    "name": "Super Admin",
-                    "description": "Hak penuh seluruh sistem"
+                    "slug": "super_admin"
+                }
+            ],
+            "incident-reporting": [
+                {
+                    "slug": "super_admin"
                 }
             ]
         }
@@ -19,16 +22,19 @@
     {
         "profile": {
             "slug": "tim_mutu",
-            "name": "Tim Mutu",
-            "description": "Mengelola dan evaluasi indikator mutu rumah sakit.",
+            "name": "Koordinator Tim Mutu",
+            "description": "Bertanggung jawab dalam pengelolaan, monitoring, evaluasi, dan pelaporan indikator mutu rumah sakit.",
             "is_system": true
         },
         "apps": {
             "siimut": [
                 {
-                    "slug": "tim_mutu",
-                    "name": "Tim Mutu",
-                    "description": "Fokus pada indikator mutu"
+                    "slug": "tim_mutu"
+                }
+            ],
+            "incident-reporting": [
+                {
+                    "slug": "tim_mutu"
                 }
             ]
         }
@@ -36,16 +42,19 @@
     {
         "profile": {
             "slug": "validator_pic",
-            "name": "Unit Kerja: PIC Indikator",
-            "description": "Validasi dan monitoring indikator unit kerja.",
+            "name": "Kepala Unit Kerja",
+            "description": "Melakukan pemeriksaan, validasi, dan monitoring data indikator mutu pada unit kerja terkait.",
             "is_system": false
         },
         "apps": {
             "siimut": [
                 {
-                    "slug": "validator_pic",
-                    "name": "Validator PIC",
-                    "description": "Validasi data indikator"
+                    "slug": "validator_pic"
+                }
+            ],
+            "incident-reporting": [
+                {
+                    "slug": "kepala_unit"
                 }
             ]
         }
@@ -53,16 +62,36 @@
     {
         "profile": {
             "slug": "pengumpul_data",
-            "name": "Unit Kerja: Pengumpul Data",
-            "description": "Mengumpulkan dan input data operasional.",
+            "name": "Petugas Input Data Mutu",
+            "description": "Bertanggung jawab dalam pengumpulan, penginputan, dan pembaruan data operasional indikator mutu.",
             "is_system": false
         },
         "apps": {
             "siimut": [
                 {
-                    "slug": "pengumpul_data",
-                    "name": "Pengumpul Data",
-                    "description": "Input data indikator"
+                    "slug": "pengumpul_data"
+                }
+            ],
+            "incident-reporting": [
+                {
+                    "slug": "pelapor"
+                }
+            ]
+        }
+    },
+    {
+        "profile": {
+            "slug": "staf",
+            "name": "Staf Unit Kerja",
+            "description": "Merupakan bagian dari unit kerja yang memiliki akses operasional sesuai kewenangan, namun tidak bertugas dalam pengumpulan maupun penginputan data indikator mutu.",
+            "is_system": false
+        },
+        "apps": {
+            "incident-reporting": [
+                {
+                    "slug": "pelapor",
+                    "name": "Pelapor Insiden",
+                    "description": "Dapat membuat dan mengelola laporan insiden sesuai tugas dan kewenangan pada unit kerja masing-masing."
                 }
             ]
         }

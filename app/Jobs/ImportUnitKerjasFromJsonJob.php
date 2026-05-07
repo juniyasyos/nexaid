@@ -83,6 +83,11 @@ class ImportUnitKerjasFromJsonJob implements ShouldQueue
         }
     }
 
+    protected function progressKey(): string
+    {
+        return 'import_unit_kerja:' . $this->importId;
+    }
+
     protected function defaultProgress(): array
     {
         return [
