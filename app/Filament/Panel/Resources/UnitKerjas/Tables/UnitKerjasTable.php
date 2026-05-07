@@ -5,6 +5,7 @@ namespace App\Filament\Panel\Resources\UnitKerjas\Tables;
 use App\Filament\Panel\Resources\UnitKerjas\RelationManagers\UsersRelationUnitKerjaManager;
 use App\Filament\Panel\Resources\UnitKerjas\UnitKerjaResource;
 use App\Models\UnitKerja;
+use Filament\Actions\Action;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkActionGroup;
 use Filament\Actions\DeleteBulkAction;
@@ -17,7 +18,9 @@ use Filament\Support\Enums\FontWeight;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\TrashedFilter;
 use Guava\FilamentModalRelationManagers\Actions\RelationManagerAction;
+use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\Storage;
 
 class UnitKerjasTable
 {
@@ -26,7 +29,7 @@ class UnitKerjasTable
         return [
             TextColumn::make('unit_name')
                 ->label(__('filament-forms::unit-kerja.fields.unit_name'))
-                ->description(fn (UnitKerja $record) => $record->description)
+                ->description(fn(UnitKerja $record) => $record->description)
                 ->wrap()
                 ->grow()
                 ->weight(FontWeight::Bold)
@@ -97,6 +100,28 @@ class UnitKerjasTable
                     ->modalSubmitActionLabel('Ya, Hapus Permanen')
                     ->visible(fn() => Gate::allows('forceDelete', UnitKerja::class)),
             ])->visible(fn() => UnitKerjaResource::isCrudAllowed() && Gate::any(['update_imut::category', 'create_imut::category'])),
+        ];
+    }
+
+    public static function headerActions(): array
+    {
+        return [
+            // ExportAction::make()->exporter(UnitKerjaExporter::class),
+
+            Action::make('exportUnitKerjaJson')
+                ->label('Unduh JSON')
+                ->icon('heroicon-o-arrow-down-tray')
+                ->action(function () {
+                    $relativePath = 'exports/unit_kerja.json';
+
+                    Artisan::call('unit-kerja:export-json', ['--path' => $relativePath]);
+
+                    return Storage::disk('local')->download(
+                        $relativePath,
+                        'unit_kerja.json',
+                        ['Content-Type' => 'application/json']
+                    );
+                })
         ];
     }
 }

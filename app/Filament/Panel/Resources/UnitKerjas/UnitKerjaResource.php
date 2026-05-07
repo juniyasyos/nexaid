@@ -89,6 +89,7 @@ class UnitKerjaResource extends Resource
             ->poll('2s')
             ->columns(UnitKerjasTable::columns())
             ->filters(UnitKerjasTable::filters())
+            ->headerActions(UnitKerjasTable::headerActions())
             ->actions(UnitKerjasTable::actions())
             ->bulkActions(UnitKerjasTable::bulkActions());
     }
