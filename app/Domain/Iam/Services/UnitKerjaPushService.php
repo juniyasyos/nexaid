@@ -107,12 +107,26 @@ class UnitKerjaPushService
 
         $units = $unitsQuery->get(['id', 'unit_name', 'description', 'slug', 'created_at', 'updated_at'])->toArray();
 
+        // Include deleted units if push_deleted_records is enabled
+        $deletedUnits = [];
+        if (config('iam.push_deleted_records', true) && $this->modelSupportsSoftDeletes(new UnitKerja())) {
+            $deletedUnitsQuery = UnitKerja::onlyTrashed();
+
+            if ($unitKerjaId !== null) {
+                $deletedUnitsQuery->where('id', $unitKerjaId);
+            }
+
+            $deletedUnits = $deletedUnitsQuery
+                ->get(['id', 'unit_name', 'description', 'slug', 'created_at', 'updated_at', 'deleted_at'])
+                ->toArray();
+        }
+
         $userIds = $relationsQuery->pluck('user_id')->unique()->toArray();
 
         $selectColumns = ['id', 'nip', 'email', 'name', 'status', 'created_at', 'updated_at'];
         if (Schema::hasColumn((new User())->getTable(), 'iam_id')) {
             $selectColumns[] = 'iam_id';
-        } 
+        }
 
         $users = User::query()
             ->whereIn('id', $userIds)
@@ -139,11 +153,38 @@ class UnitKerjaPushService
             ->get()
             ->toArray();
 
+        // Include deleted relations (force delete tracking)
+        $deletedRelations = [];
+        if (config('iam.push_deleted_records', true) && $this->modelSupportsSoftDeletes(new UnitKerja())) {
+            // Query for deleted unit kerja's past relations
+            $deletedUnitKerjaIds = UnitKerja::onlyTrashed()
+                ->when($unitKerjaId !== null, fn($q) => $q->where('id', $unitKerjaId))
+                ->pluck('id')
+                ->toArray();
+
+            if (! empty($deletedUnitKerjaIds)) {
+                // Note: pivot table doesn't have soft delete, but we track via the deleted unit kerja
+                // This signals client to detach users from deleted unit kerja
+                $deletedRelations = \Illuminate\Support\Facades\DB::table('user_unit_kerja')
+                    ->whereIn('unit_kerja_id', $deletedUnitKerjaIds)
+                    ->select(
+                        'user_unit_kerja.user_id',
+                        'user_unit_kerja.unit_kerja_id'
+                    )
+                    ->join('users', 'user_unit_kerja.user_id', '=', 'users.id', 'left')
+                    ->addSelect('users.nip as user_nip', 'users.email as user_email')
+                    ->get()
+                    ->toArray();
+            }
+        }
+
         return [
             'data' => [
                 'units' => $units,
+                'deleted_units' => $deletedUnits,
                 'users' => $users,
                 'user_unit_kerja' => $relations,
+                'deleted_user_unit_kerja' => $deletedRelations,
             ],
         ];
     }
@@ -192,5 +233,17 @@ class UnitKerjaPushService
         }
 
         return $secret;
+    }
+
+    /**
+     * Check if a model uses SoftDeletes trait.
+     */
+    protected function modelSupportsSoftDeletes($model): bool
+    {
+        return in_array(
+            \Illuminate\Database\Eloquent\SoftDeletes::class,
+            class_uses_recursive($model::class),
+            true
+        );
     }
 }

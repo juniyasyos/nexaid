@@ -1,0 +1,299 @@
+[
+    {
+        "id": 1,
+        "unit_name": "IGD test edit",
+        "slug": "igd",
+        "description": "Unit Gawat Darurat (IGD) menangani kasus-kasus medis darurat yang membutuhkan penanganan cepat dan tepat selama 24 jam.",
+        "created_at": "2025-07-10 20:27:06",
+        "updated_at": "2026-04-26 02:48:24",
+        "deleted_at": null
+    },
+    {
+        "id": 2,
+        "unit_name": "Rawat Jalan",
+        "slug": "rawat-jalan",
+        "description": "Unit Rawat Jalan melayani pemeriksaan dan pengobatan pasien tanpa perlu rawat inap, meliputi berbagai poliklinik spesialis.",
+        "created_at": "2025-07-10 20:27:06",
+        "updated_at": "2025-07-10 20:27:06",
+        "deleted_at": null
+    },
+    {
+        "id": 3,
+        "unit_name": "Hemodialisa",
+        "slug": "hemodialisa",
+        "description": "Unit Hemodialisa menyediakan layanan cuci darah bagi pasien dengan gangguan fungsi ginjal secara berkala.",
+        "created_at": "2025-07-10 20:27:06",
+        "updated_at": "2025-07-10 20:27:06",
+        "deleted_at": null
+    },
+    {
+        "id": 4,
+        "unit_name": "OK",
+        "slug": "ok",
+        "description": "Unit Operasi (OK) adalah tempat pelaksanaan tindakan pembedahan dengan standar steril dan tenaga medis profesional.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 5,
+        "unit_name": "ICU",
+        "slug": "icu",
+        "description": "Intensive Care Unit (ICU) merupakan unit perawatan intensif untuk pasien dengan kondisi kritis yang memerlukan pemantauan ketat.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 6,
+        "unit_name": "Tulip",
+        "slug": "tulip",
+        "description": "Unit Tulip adalah ruang rawat inap khusus dengan layanan keperawatan dan medis yang disesuaikan dengan kebutuhan pasien tertentu.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 7,
+        "unit_name": "Rosalina",
+        "slug": "rosalina",
+        "description": "Unit Rosalina memberikan pelayanan rawat inap dengan fasilitas dan perawatan yang mengutamakan kenyamanan dan keselamatan pasien.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 8,
+        "unit_name": "Alamanda",
+        "slug": "alamanda",
+        "description": "Unit Alamanda merupakan salah satu ruang rawat inap yang mendukung pemulihan pasien melalui perawatan medis dan keperawatan terstandar.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 9,
+        "unit_name": "Teratai",
+        "slug": "teratai",
+        "description": "Unit Teratai menyediakan layanan rawat inap dengan pendekatan asuhan keperawatan holistik dan berorientasi pada kebutuhan pasien.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 10,
+        "unit_name": "Anturium",
+        "slug": "anturium",
+        "description": "Unit Anturium melayani perawatan pasien rawat inap dengan dukungan tenaga medis dan keperawatan yang profesional dan responsif.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 11,
+        "unit_name": "Laboratorium",
+        "slug": "laboratorium",
+        "description": "Unit Laboratorium menyediakan layanan pemeriksaan sampel biologis untuk mendukung diagnosis, pemantauan, dan evaluasi kondisi medis pasien.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 12,
+        "unit_name": "Radiologi",
+        "slug": "radiologi",
+        "description": "Unit Radiologi melakukan pemeriksaan pencitraan medis seperti rontgen, CT-scan, dan USG untuk membantu diagnosa dan tindakan medis.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 13,
+        "unit_name": "Farmasi Rawat Jalan",
+        "slug": "farmasi-rawat-jalan",
+        "description": "Unit Farmasi Rawat Jalan bertanggung jawab dalam penyediaan dan pelayanan obat bagi pasien yang menjalani perawatan tanpa rawat inap.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 14,
+        "unit_name": "Farmasi Rawat Inap",
+        "slug": "farmasi-rawat-inap",
+        "description": "Unit Farmasi Rawat Inap mengelola kebutuhan obat dan bahan medis habis pakai bagi pasien yang dirawat di rumah sakit.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 15,
+        "unit_name": "Gudang Farmasi",
+        "slug": "gudang-farmasi",
+        "description": "Gudang Farmasi bertugas dalam pengelolaan logistik obat, alat kesehatan, dan distribusinya ke seluruh unit pelayanan rumah sakit.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 16,
+        "unit_name": "Rekam Medis",
+        "slug": "rekam-medis",
+        "description": "Unit Rekam Medis menyimpan, mengelola, dan menjaga kerahasiaan data medis pasien sebagai bagian dari sistem informasi rumah sakit.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 17,
+        "unit_name": "Gizi",
+        "slug": "gizi",
+        "description": "Unit Gizi bertanggung jawab dalam penyusunan dan penyediaan makanan bergizi bagi pasien sesuai dengan kondisi kesehatan masing-masing.",
+        "created_at": "2025-07-10 20:27:07",
+        "updated_at": "2025-07-10 20:27:07",
+        "deleted_at": null
+    },
+    {
+        "id": 18,
+        "unit_name": "Kepegawaian & Diklat",
+        "slug": "kepegawaian-diklat",
+        "description": "Unit Kepegawaian & Diklat menangani administrasi SDM dan pengembangan kompetensi staf melalui pelatihan dan pendidikan berkelanjutan.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2025-07-10 20:27:08",
+        "deleted_at": null
+    },
+    {
+        "id": 19,
+        "unit_name": "Sanitasi & Kebersihan",
+        "slug": "sanitasi-kebersihan",
+        "description": "Unit Sanitasi & Kebersihan menjaga kebersihan, kenyamanan, dan sanitasi lingkungan rumah sakit demi terciptanya pelayanan yang higienis.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2026-03-05 19:32:18",
+        "deleted_at": null
+    },
+    {
+        "id": 22,
+        "unit_name": "Linen & Laundry",
+        "slug": "linen-laundry",
+        "description": "Unit Linen & Laundry bertanggung jawab dalam pengelolaan, pencucian, dan distribusi linen bersih bagi seluruh unit pelayanan rumah sakit.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2026-03-05 19:32:18",
+        "deleted_at": null
+    },
+    {
+        "id": 25,
+        "unit_name": "Informasi dan Komplain",
+        "slug": "informasi-dan-komplain",
+        "description": "Unit ini melayani kebutuhan informasi pasien serta menampung dan menindaklanjuti keluhan demi peningkatan mutu pelayanan rumah sakit.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2025-07-10 20:27:08",
+        "deleted_at": null
+    },
+    {
+        "id": 26,
+        "unit_name": "TIK",
+        "slug": "tik",
+        "description": "Unit Teknologi Informasi dan Komunikasi (TIK) mendukung pengelolaan sistem informasi rumah sakit dan infrastruktur teknologi yang andal.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2025-07-10 20:27:08",
+        "deleted_at": null
+    },
+    {
+        "id": 27,
+        "unit_name": "Keuangan",
+        "slug": "keuangan",
+        "description": "Unit Keuangan bertugas dalam pengelolaan anggaran, pencatatan transaksi keuangan, dan pelaporan keuangan rumah sakit secara transparan.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2025-07-10 20:27:08",
+        "deleted_at": null
+    },
+    {
+        "id": 29,
+        "unit_name": "Akuntansi",
+        "slug": "akuntansi",
+        "description": "Unit Akuntansi mencatat, mengolah, dan melaporkan data keuangan secara akurat untuk mendukung pengambilan keputusan manajerial.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2025-07-10 20:27:08",
+        "deleted_at": null
+    },
+    {
+        "id": 30,
+        "unit_name": "Perpajakan",
+        "slug": "perpajakan",
+        "description": "Unit Perpajakan bertanggung jawab atas pengelolaan dan pelaporan kewajiban pajak rumah sakit sesuai peraturan perpajakan yang berlaku.",
+        "created_at": "2025-07-10 20:27:08",
+        "updated_at": "2025-07-10 20:27:08",
+        "deleted_at": null
+    },
+    {
+        "id": 31,
+        "unit_name": "VK",
+        "slug": "vk",
+        "description": "Unit Verlos Kamer (VK) bertugas menyediakan fasilitas dan peralatan medis yang diperlukan untuk mendukung proses persalinan. Selain itu, unit ini juga memiliki tanggung jawab untuk memastikan tersedianya tim medis yang terlatih guna memberikan perawatan optimal kepada ibu dan bayi selama dan setelah proses persalinan.",
+        "created_at": "2025-07-10 22:37:04",
+        "updated_at": "2025-07-10 22:50:00",
+        "deleted_at": null
+    },
+    {
+        "id": 32,
+        "unit_name": "Perinatologi",
+        "slug": "perinatologi",
+        "description": "ruang perawatan bayi sehat dan bayi sakit",
+        "created_at": "2025-07-14 17:53:16",
+        "updated_at": "2025-07-14 17:53:16",
+        "deleted_at": null
+    },
+    {
+        "id": 33,
+        "unit_name": "Bagian Umum",
+        "slug": "bagian-umum",
+        "description": "meliputi beberapa unit yaitu sanitasi dan jebersihan, IPSRS, Laundry, Kontruksi dan renovasi, keamanan dan transportasi",
+        "created_at": "2025-07-15 18:11:27",
+        "updated_at": "2025-07-15 18:11:27",
+        "deleted_at": null
+    },
+    {
+        "id": 34,
+        "unit_name": "Ruang Lotus",
+        "slug": "ruang-lotus",
+        "description": "ruang perawatan rawat inap untuk kelas VIP dan VVIP (6 bed)",
+        "created_at": "2025-10-06 15:56:48",
+        "updated_at": "2025-10-06 15:56:48",
+        "deleted_at": null
+    },
+    {
+        "id": 35,
+        "unit_name": "TIM PPI",
+        "slug": "tim-ppi",
+        "description": "tim yang mengelola pengendalian ind=feksi di seluruh unit di rmah sakit citra husada jember",
+        "created_at": "2026-01-29 16:37:38",
+        "updated_at": "2026-01-29 16:37:50",
+        "deleted_at": null
+    },
+    {
+        "id": 36,
+        "unit_name": "UNIT CSSD",
+        "slug": "unit-cssd",
+        "description": "merupakan unit yang melakukan pelayanana sterilisasi alat2 medis,",
+        "created_at": "2026-01-30 17:02:43",
+        "updated_at": "2026-01-30 17:02:43",
+        "deleted_at": null
+    },
+    {
+        "id": 38,
+        "unit_name": "unit indikator lama",
+        "slug": "unit-indikator-lama", 
+        "description": "unit bayangan",
+        "created_at": "2026-03-02 22:07:35",
+        "updated_at": "2026-03-02 22:07:35",
+        "deleted_at": null
+    },
+    {
+        "id": 40,
+        "unit_name": "TIK edit testest data ya apa kabar bos",
+        "slug": "tik-edit-testest-data-ya-apa-kabar-bos",
+        "description": "Synced from IAM push users",
+        "created_at": "2026-04-26 02:53:15",
+        "updated_at": "2026-04-26 02:53:15",
+        "deleted_at": null
+    }
+]

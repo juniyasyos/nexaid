@@ -135,6 +135,35 @@ class UserObserver
         $this->dispatchUserSync($user, 'restored');
     }
 
+    public function forceDeleted(User $user): void
+    {
+        if (config('iam.user_sync_mode', 'pull') !== 'push') {
+            return;
+        }
+
+        Log::warning('iam.user_observer_force_deleted', [
+            'user_id' => $user->id,
+            'nip' => $user->nip,
+            'email' => $user->email,
+            'timestamp' => now()->toDateTimeString(),
+        ]);
+
+        // Force delete all user_unit_kerja relations
+        if (method_exists($user, 'unitKerjas')) {
+            \Illuminate\Support\Facades\DB::table('user_unit_kerja')
+                ->where('user_id', $user->id)
+                ->delete();
+
+            Log::info('iam.user_unit_kerja_force_deleted', [
+                'user_id' => $user->id,
+                'nip' => $user->nip,
+                'timestamp' => now()->toDateTimeString(),
+            ]);
+        }
+
+        $this->dispatchUserSync($user, 'force_deleted');
+    }
+
     /**
      * Triggered from relationship events / role assignment operations.
      * OPTIMIZATION: Avoid loading all roles and permissions to prevent memory issues

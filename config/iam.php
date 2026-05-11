@@ -47,6 +47,30 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Unit Kerja Delete Behavior
+    |--------------------------------------------------------------------------
+    |
+    | Control how deleted unit kerja and users are handled:
+    | - true (default): soft delete, unit kerja stays recoverable
+    | - false: force delete, permanently removed from IAM and pushed to clients
+    |
+    */
+    'unit_kerja_delete_soft' => env('IAM_UNIT_KERJA_DELETE_SOFT', false),
+    'user_delete_soft' => env('IAM_USER_DELETE_SOFT', false),
+
+    /*
+    |--------------------------------------------------------------------------
+    | Push Deleted Records
+    |--------------------------------------------------------------------------
+    |
+    | Include deleted records in push payload to signal client deletion.
+    | Only applies when soft delete is disabled (force delete mode).
+    |
+    */
+    'push_deleted_records' => env('IAM_PUSH_DELETED_RECORDS', true),
+
+    /*
+    |--------------------------------------------------------------------------
     | SSO Shared Secret
     |--------------------------------------------------------------------------
     |
