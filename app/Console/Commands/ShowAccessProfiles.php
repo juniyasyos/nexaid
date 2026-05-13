@@ -73,15 +73,26 @@ class ShowAccessProfiles extends Command
 
     /**
      * Display profiles as a table
+     * OPTIMIZATION: Use withCount() to load counts efficiently instead of N+1 queries
      */
     private function displayTable($profiles): void
     {
         $headers = ['ID', 'Identifier', 'Slug', 'Name', 'Description', 'Active', 'System', 'Users', 'Roles', 'Created'];
         $rows = [];
 
+        // OPTIMIZATION: Reload profiles with counts to prevent N+1
+        // This ensures we have users_count and roles_count attributes instead of querying them
+        $profileIds = $profiles->pluck('id')->toArray();
+        $profilesWithCounts = AccessProfile::query()
+            ->whereIn('id', $profileIds)
+            ->withCount('users', 'roles')
+            ->get()
+            ->keyBy('id');
+
         foreach ($profiles as $profile) {
-            $usersCount = $profile->users()->count();
-            $rolesCount = $profile->roles()->count();
+            $profileWithCounts = $profilesWithCounts->get($profile->id);
+            $usersCount = $profileWithCounts->users_count ?? 0;
+            $rolesCount = $profileWithCounts->roles_count ?? 0;
 
             $rows[] = [
                 $profile->id,
@@ -105,10 +116,20 @@ class ShowAccessProfiles extends Command
 
     /**
      * Display profiles as JSON
+     * OPTIMIZATION: Use withCount() to load counts efficiently instead of N+1 queries
      */
     private function displayJson($profiles): void
     {
-        $data = $profiles->map(function ($profile) {
+        // OPTIMIZATION: Reload profiles with counts to prevent N+1
+        $profileIds = $profiles->pluck('id')->toArray();
+        $profilesWithCounts = AccessProfile::query()
+            ->whereIn('id', $profileIds)
+            ->withCount('users', 'roles')
+            ->get()
+            ->keyBy('id');
+
+        $data = $profiles->map(function ($profile) use ($profilesWithCounts) {
+            $profileWithCounts = $profilesWithCounts->get($profile->id);
             return [
                 'id' => $profile->id,
                 'key_hash' => $profile->key_hash,
@@ -117,8 +138,8 @@ class ShowAccessProfiles extends Command
                 'description' => $profile->description,
                 'is_active' => $profile->is_active,
                 'is_system' => $profile->is_system,
-                'users_count' => $profile->users()->count(),
-                'roles_count' => $profile->roles()->count(),
+                'users_count' => $profileWithCounts->users_count ?? 0,
+                'roles_count' => $profileWithCounts->roles_count ?? 0,
                 'created_at' => $profile->created_at,
                 'updated_at' => $profile->updated_at,
             ];
@@ -129,15 +150,25 @@ class ShowAccessProfiles extends Command
 
     /**
      * Display profiles as CSV
+     * OPTIMIZATION: Use withCount() to load counts efficiently instead of N+1 queries
      */
     private function displayCsv($profiles): void
     {
         $headers = ['ID', 'Identifier', 'Slug', 'Name', 'Description', 'Active', 'System', 'Users Count', 'Roles Count', 'Created At'];
         $this->line(implode(',', $headers));
 
+        // OPTIMIZATION: Reload profiles with counts to prevent N+1
+        $profileIds = $profiles->pluck('id')->toArray();
+        $profilesWithCounts = AccessProfile::query()
+            ->whereIn('id', $profileIds)
+            ->withCount('users', 'roles')
+            ->get()
+            ->keyBy('id');
+
         foreach ($profiles as $profile) {
-            $usersCount = $profile->users()->count();
-            $rolesCount = $profile->roles()->count();
+            $profileWithCounts = $profilesWithCounts->get($profile->id);
+            $usersCount = $profileWithCounts->users_count ?? 0;
+            $rolesCount = $profileWithCounts->roles_count ?? 0;
 
             $row = [
                 $profile->id,

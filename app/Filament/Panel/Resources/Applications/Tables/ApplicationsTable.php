@@ -34,7 +34,7 @@ class ApplicationsTable
             ->heading('Manajemen Aplikasi IAM')
             ->description('Kelola integrasi aplikasi, sinkronisasi hak akses, konfigurasi autentikasi, serta status koneksi aplikasi pada sistem IAM.')
             ->defaultSort('updated_at', 'asc')
-            ->poll('10s')
+            ->poll('30s')
             ->defaultPaginationPageOption(25)
             ->striped()
             ->persistFiltersInSession()

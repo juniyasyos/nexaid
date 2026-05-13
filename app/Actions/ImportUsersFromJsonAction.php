@@ -29,98 +29,84 @@ class ImportUsersFromJsonAction
         $accessProfilesNotFound = [];
         $unitKerjasNotFound = [];
 
-        foreach ($data as $index => $userData) {
+        // OPTIMIZATION: Process users in chunks with one transaction per chunk
+        // This prevents memory issues on large imports and maintains atomicity per batch
+        collect($data)->chunk(100)->each(function ($batch, $batchIndex) use (
+            &$created,
+            &$updated,
+            &$failed,
+            &$errors,
+            &$accessProfilesNotFound,
+            &$unitKerjasNotFound
+        ) {
             try {
-                DB::beginTransaction();
+                DB::transaction(function () use ($batch, $batchIndex, &$created, &$updated, &$failed, &$errors, &$accessProfilesNotFound, &$unitKerjasNotFound) {
+                    foreach ($batch as $batchPosition => $userData) {
+                        $rowIndex = ($batchIndex * 100) + $batchPosition;
+                        
+                        try {
+                            $actionType = 'create';
 
-                $beforeData = null;
-                $actionType = 'create';
+                            // Ambil data sebelum update/create
+                            if (! empty($userData['id'])) {
+                                $existingUser = User::with(['accessProfiles', 'unitKerjas'])
+                                    ->find($userData['id']);
 
-                // Ambil data sebelum update/create
-                if (! empty($userData['id'])) {
-                    $existingUser = User::with(['accessProfiles', 'unitKerjas'])
-                        ->find($userData['id']);
+                                if ($existingUser) {
+                                    $actionType = 'update';
+                                }
+                            }
 
-                    if ($existingUser) {
-                        $actionType = 'update';
+                            $user = User::updateOrCreate(
+                                ['id' => $userData['id'] ?? null],
+                                $this->sanitizeUserData($userData)
+                            );
 
-                        $beforeData = [
-                            'user' => $existingUser->toArray(),
-                            'roles' => $existingUser->accessProfiles
-                                ->pluck('name')
-                                ->toArray(),
-                            'unit_kerjas' => $existingUser->unitKerjas
-                                ->pluck('name')
-                                ->toArray(),
-                        ];
+                            if ($user->wasRecentlyCreated) {
+                                $created++;
+                            } else {
+                                $updated++;
+                            }
+
+                            // Handle access profiles assignment (mapped from "roles" key)
+                            if (! empty($userData['roles']) && is_array($userData['roles'])) {
+                                $this->syncAccessProfiles($user, $userData['roles'], $accessProfilesNotFound);
+                            }
+                            
+                            // Handle access profiles assignment (mapped from "syncAccessProfiles" key)
+                            if (! empty($userData['accessProfiles']) && is_array($userData['accessProfiles'])) {
+                                $this->syncAccessProfiles($user, $userData['accessProfiles'], $accessProfilesNotFound);
+                            }
+
+                            // Handle unit_kerjas assignment
+                            if (! empty($userData['unit_kerjas']) && is_array($userData['unit_kerjas'])) {
+                                $this->syncUnitKerjas($user, $userData['unit_kerjas'], $unitKerjasNotFound);
+                            }
+                        } catch (Throwable $e) {
+                            $failed++;
+                            $errors[] = [
+                                'row' => $rowIndex + 1,
+                                'nip' => $userData['nip'] ?? 'N/A',
+                                'name' => $userData['name'] ?? 'N/A',
+                                'error' => $e->getMessage(),
+                            ];
+                        }
                     }
-                }
-
-                $user = User::updateOrCreate(
-                    ['id' => $userData['id'] ?? null],
-                    $this->sanitizeUserData($userData)
-                );
-
-                if ($user->wasRecentlyCreated) {
-                    $created++;
-                    $actionType = 'create';
-                } else {
-                    $updated++;
-                }
-
-                // Handle access profiles assignment (mapped from "roles" key)
-                if (! empty($userData['roles']) && is_array($userData['roles'])) {
-                    $this->syncAccessProfiles($user, $userData['roles'], $accessProfilesNotFound);
-                }
-                
-                // Handle access profiles assignment (mapped from "syncAccessProfiles" key)
-                if (! empty($userData['accessProfiles']) && is_array($userData['accessProfiles'])) {
-                    $this->syncAccessProfiles($user, $userData['accessProfiles'], $accessProfilesNotFound);
-                }
-
-                // Handle unit_kerjas assignment
-                if (! empty($userData['unit_kerjas']) && is_array($userData['unit_kerjas'])) {
-                    $this->syncUnitKerjas($user, $userData['unit_kerjas'], $unitKerjasNotFound);
-                }
-
-                // Refresh relasi terbaru
-                $user->load(['accessProfiles', 'unitKerjas']);
-
-                // $afterData = [
-                //     'user' => $user->toArray(),
-                //     'roles' => $user->accessProfiles
-                //         ->pluck('name')
-                //         ->toArray(),
-                //     'unit_kerjas' => $user->unitKerjas
-                //         ->pluck('name')
-                //         ->toArray(),
-                // ];
-
-                // if ($userData['name'] == 'Agung Sunaryo, S.Kom') {
-                //     dd([
-                //         'action' => $actionType,
-                //         'is_created' => $user->wasRecentlyCreated,
-
-                //         'before' => $beforeData,
-
-                //         'after' => $afterData,
-
-                //         'incoming_payload' => $userData,
-                //     ]);
-                // }
-
-                DB::commit();
+                });
             } catch (Throwable $e) {
-                DB::rollBack();
-                $failed++;
-                $errors[] = [
-                    'row' => $index + 1,
-                    'nip' => $userData['nip'] ?? 'N/A',
-                    'name' => $userData['name'] ?? 'N/A',
-                    'error' => $e->getMessage(),
-                ];
+                // If entire batch fails, mark all rows as failed
+                foreach ($batch as $batchPosition => $userData) {
+                    $rowIndex = ($batchIndex * 100) + $batchPosition;
+                    $failed++;
+                    $errors[] = [
+                        'row' => $rowIndex + 1,
+                        'nip' => $userData['nip'] ?? 'N/A',
+                        'name' => $userData['name'] ?? 'N/A',
+                        'error' => $e->getMessage() . ' (batch error)',
+                    ];
+                }
             }
-        }
+        });
 
         $result = [
             'created' => $created,

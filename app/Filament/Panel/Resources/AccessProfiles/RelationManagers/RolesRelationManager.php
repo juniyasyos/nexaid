@@ -24,6 +24,7 @@ class RolesRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->with('application'))
             ->columns([
                 TextColumn::make('application.name')
                     ->label('Application')

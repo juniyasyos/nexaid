@@ -150,7 +150,6 @@ class ApplicationInfolist
 
                                 TextEntry::make('roles_count')
                                     ->label('Jumlah Role')
-                                    ->state(fn(Application $record) => $record->roles()->count())
                                     ->numeric()
                                     ->badge()
                                     ->color('info')
@@ -158,7 +157,6 @@ class ApplicationInfolist
 
                                 TextEntry::make('system_roles_count')
                                     ->label('System Role')
-                                    ->state(fn(Application $record) => $record->systemRoles()->count())
                                     ->numeric()
                                     ->badge()
                                     ->color('warning')

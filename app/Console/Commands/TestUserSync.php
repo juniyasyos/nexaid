@@ -51,17 +51,22 @@ class TestUserSync extends Command
 
         // Step 2: Check current state
         $this->info('Step 2️⃣  Current state before sync...');
-        $users = User::all();
-        $this->info("   Total users: {$users->count()}");
+        $userCount = User::count();
+        $this->info("   Total users: {$userCount}");
 
-        foreach ($users as $user) {
-            $profiles = $user->accessProfiles()
-                ->whereHas('roles', function ($q) use ($app) {
-                    $q->where('application_id', $app->id);
-                })
-                ->count();
-            $this->info("   • {$user->name} (NIP: {$user->nip}): {$profiles} profiles");
-        }
+        // OPTIMIZATION: Use chunk to avoid loading entire table + use withCount to avoid N+1
+        User::withCount([
+            'accessProfiles' => function ($q) use ($app) {
+                $q->whereHas('roles', function ($q2) use ($app) {
+                    $q2->where('application_id', $app->id);
+                });
+            }
+        ])
+        ->chunk(100, function ($users) {
+            foreach ($users as $user) {
+                $this->info("   • {$user->name} (NIP: {$user->nip}): {$user->access_profiles_count} profiles");
+            }
+        });
         $this->line('');
 
         // Step 3: Sync
@@ -128,23 +133,25 @@ class TestUserSync extends Command
 
         // Step 4: Check after sync
         $this->info('Step 4️⃣  State after sync...');
-        $users = User::all();
+        
+        // OPTIMIZATION: Use chunk to avoid loading entire table + use with() to avoid N+1
+        User::with(['accessProfiles'])
+            ->chunk(100, function ($users) use ($app) {
+                foreach ($users as $user) {
+                    $profiles = $user->accessProfiles
+                        ->filter(function ($profile) use ($app) {
+                            return $profile->roles->where('application_id', $app->id)->isNotEmpty();
+                        });
 
-        foreach ($users as $user) {
-            $profiles = $user->accessProfiles()
-                ->whereHas('roles', function ($q) use ($app) {
-                    $q->where('application_id', $app->id);
-                })
-                ->get();
-
-            if ($profiles->isEmpty()) {
-                $this->warn("   • {$user->name} (NIP: {$user->nip}): ❌ NO PROFILES");
-            } else {
-                $profileNames = $profiles->pluck('name')->implode(', ');
-                $this->info("   • {$user->name} (NIP: {$user->nip}): ✅ {$profiles->count()} profiles");
-                $this->info("     → {$profileNames}");
-            }
-        }
+                    if ($profiles->isEmpty()) {
+                        $this->warn("   • {$user->name} (NIP: {$user->nip}): ❌ NO PROFILES");
+                    } else {
+                        $profileNames = $profiles->pluck('name')->implode(', ');
+                        $this->info("   • {$user->name} (NIP: {$user->nip}): ✅ {$profiles->count()} profiles");
+                        $this->info("     → {$profileNames}");
+                    }
+                }
+            });
         $this->line('');
 
         // Step 5: Raw pivot table check

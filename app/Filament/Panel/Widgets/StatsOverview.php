@@ -5,6 +5,7 @@ namespace App\Filament\Panel\Widgets;
 use App\Models\User;
 use Filament\Widgets\StatsOverviewWidget as BaseWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
+use Illuminate\Support\Facades\DB;
 
 class StatsOverview extends BaseWidget
 {
@@ -30,29 +31,19 @@ class StatsOverview extends BaseWidget
         $newUsers7Days = User::where('created_at', '>=', now()->subDays(7))->count();
 
         // =========================
-        // SESSION BASED ACTIVITY
+        // SESSION BASED ACTIVITY (optimized)
         // =========================
-        $activeSessions = 0;
+        $lifetimeSeconds = config('session.lifetime') * 60;
+        $threshold = now()->subSeconds($lifetimeSeconds)->getTimestamp();
+
+        // Count distinct users with recent activity (considered "active")
+        $activeSessions = DB::table('sessions')
+            ->where('last_activity', '>=', $threshold)
+            ->distinct()
+            ->count('user_id');
+
+        // We no longer compute per-user expired sessions here; keep zero as fallback.
         $expiredSessions = 0;
-
-        User::query()
-            ->select(['id']) // hemat memory
-            ->chunk(100, function ($users) use (&$activeSessions, &$expiredSessions) {
-                foreach ($users as $user) {
-                    if (! $user->hasActiveSession()) {
-                        continue;
-                    }
-
-                    $start = $user->getActiveSessionLastActivity();
-                    $end = $user->getActiveSessionExpiresAt();
-
-                    if ($start && $end && now()->between($start, $end)) {
-                        $activeSessions++;
-                    } else {
-                        $expiredSessions++;
-                    }
-                }
-            });
 
         return [
 

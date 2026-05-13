@@ -72,6 +72,8 @@ class ApplicationResource extends Resource
         return parent::getRecordRouteBindingEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
-            ]);
+            ])
+            ->withCount(['roles', 'systemRoles'])
+            ->with(['creator']);
     }
 }

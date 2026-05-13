@@ -36,7 +36,7 @@ class UsersTable
             ->heading('Manajemen Pengguna')
             ->description('Kelola akun IAM, hak akses aplikasi, dan status keamanan pengguna.')
             ->defaultSort('updated_at', 'desc')
-            ->poll('2s')
+            ->poll('30s')
             ->defaultPaginationPageOption(25)
             ->striped()
             ->persistFiltersInSession()
@@ -75,30 +75,6 @@ class UsersTable
                     ->tooltip('Unit kerja yang menjadi tempat tugas pengguna.')
                     ->wrap()
                     ->placeholder('Belum ada unit kerja')
-                    ->toggleable(),
-
-                // DAFTAR APLIKASI YANG BISA DIAKSES - OPTIMIZED: Use cache and eager loading
-                TextColumn::make('accessible_apps')
-                    ->label('Role Bundles')
-                    ->getStateUsing(function (User $record): ?string {
-                        // Uses cached relationship method
-                        $apps = $record->relationLoaded('accessProfiles')
-                            ? $record->accessProfiles->where('is_active', true)->pluck('name')->toArray()
-                            : $record->accessProfiles()->where('is_active', true)->pluck('name')->toArray();
-
-                        if (empty($apps)) {
-                            return null;
-                        }
-
-                        return collect($apps)
-                            ->map(fn(string $appKey) => strtoupper($appKey))
-                            ->implode(' • ');
-                    })
-                    ->badge()
-                    ->color('info')
-                    ->tooltip('Daftar aplikasi yang dapat diakses pengguna melalui IAM.')
-                    ->wrap()
-                    ->placeholder('Tidak ada akses aplikasi')
                     ->toggleable(),
 
                 // RINGKASAN IAM (jumlah aplikasi & profil) - OPTIMIZED
@@ -146,50 +122,86 @@ class UsersTable
                     ->label('Login Aktif')
                     ->badge()
                     ->color(function (User $record) {
+                        // Determine session window using cached session if available,
+                        // otherwise fall back to last_login_at/last_logout_at heuristic.
+                        $now = Carbon::now(config('app.timezone'));
+                        $lifetimeSeconds = config('session.lifetime') * 60;
+
+                        $start = null;
+                        $end = null;
+
+                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
+                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
+                            $end = $start->copy()->addSeconds($lifetimeSeconds);
+                        } elseif ($record->last_login_at !== null) {
+                            // Treat last_login_at as the start if logout is absent or older than login
+                            if ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at)) {
+                                $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
+                                $end = $start->copy()->addSeconds($lifetimeSeconds);
+                            }
+                        }
+
+                        if ($start && $end && $now->between($start, $end)) {
+                            return 'success';
+                        }
+
                         if ($record->last_login_at === null && $record->last_logout_at === null) {
                             return 'secondary';
                         }
 
-                        $start = $record->getActiveSessionLastActivity();
-                        $end = $record->getActiveSessionExpiresAt();
-                        $now = Carbon::now(config('app.timezone'));
-
-                        return ($start && $end && $now->between($start, $end))
-                            ? 'success'
-                            : 'warning';
+                        return 'warning';
                     })
                     ->getStateUsing(function (User $record) {
+                        $now = Carbon::now(config('app.timezone'));
+                        $lifetimeSeconds = config('session.lifetime') * 60;
+
+                        $start = null;
+                        $end = null;
+
+                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
+                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
+                            $end = $start->copy()->addSeconds($lifetimeSeconds);
+                        } elseif ($record->last_login_at !== null) {
+                            if ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at)) {
+                                $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
+                                $end = $start->copy()->addSeconds($lifetimeSeconds);
+                            }
+                        }
+
+                        if ($start && $end && $now->between($start, $end)) {
+                            return 'Online';
+                        }
+
                         if ($record->last_login_at === null && $record->last_logout_at === null) {
                             return 'Tidak login';
                         }
 
-                        $start = $record->getActiveSessionLastActivity();
-                        $end = $record->getActiveSessionExpiresAt();
-                        $now = Carbon::now(config('app.timezone'));
-
-                        return ($start && $end && $now->between($start, $end))
-                            ? 'Online'
-                            : 'Offline';
+                        return 'Offline';
                     })
                     ->description(function (User $record) {
-                        if ($record->last_login_at === null && $record->last_logout_at === null) {
-                            return 'Pengguna belum pernah login';
-                        }
-
-                        if (! $record->hasActiveSession()) {
-                            return 'Tidak ada sesi login aktif';
-                        }
-
-                        $start = $record->getActiveSessionLastActivity();
-                        $end = $record->getActiveSessionExpiresAt();
                         $now = Carbon::now(config('app.timezone'));
+                        $lifetimeSeconds = config('session.lifetime') * 60;
 
-                        if (! $start || ! $end) {
-                            return 'Tidak ada sesi login aktif';
+                        $start = null;
+                        $end = null;
+
+                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
+                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
+                            $end = $start->copy()->addSeconds($lifetimeSeconds);
+                        } elseif ($record->last_login_at !== null) {
+                            if ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at)) {
+                                $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
+                                $end = $start->copy()->addSeconds($lifetimeSeconds);
+                            }
                         }
 
-                        $start = $start->copy()->setTimezone(config('app.timezone'));
-                        $end = $end->copy()->setTimezone(config('app.timezone'));
+                        if ($start === null || $end === null) {
+                            if ($record->last_login_at === null && $record->last_logout_at === null) {
+                                return 'Pengguna belum pernah login';
+                            }
+
+                            return 'Tidak ada sesi login aktif';
+                        }
 
                         if (! $now->between($start, $end)) {
                             return sprintf('Sesi sudah berakhir pada %s', $end->format('H:i'));
@@ -210,23 +222,17 @@ class UsersTable
                         );
                     })
                     ->tooltip(function (User $record) {
-                        if ($record->last_login_at === null && $record->last_logout_at === null) {
-                            return 'Pengguna belum pernah login';
-                        }
+                        $lifetimeSeconds = config('session.lifetime') * 60;
 
-                        if (! $record->hasActiveSession()) {
+                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
+                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
+                            $end = $start->copy()->addSeconds($lifetimeSeconds);
+                        } elseif ($record->last_login_at !== null && ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at))) {
+                            $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
+                            $end = $start->copy()->addSeconds($lifetimeSeconds);
+                        } else {
                             return 'Tidak ada sesi login aktif';
                         }
-
-                        $start = $record->getActiveSessionLastActivity();
-                        $end = $record->getActiveSessionExpiresAt();
-
-                        if (! $start || ! $end) {
-                            return 'Tidak ada sesi login aktif';
-                        }
-
-                        $start = $start->copy()->setTimezone(config('app.timezone'));
-                        $end = $end->copy()->setTimezone(config('app.timezone'));
 
                         return sprintf('%s - %s (WIB)', $start->format('H:i'), $end->format('H:i'));
                     })
@@ -555,7 +561,7 @@ class UsersTable
                         ['Content-Type' => 'application/json']
                     );
                 })
-                // ->visible(fn() => Gate::allows('export', User::class)),
+            // ->visible(fn() => Gate::allows('export', User::class)),
         ];
     }
 }

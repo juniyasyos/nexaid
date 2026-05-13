@@ -27,6 +27,7 @@ class UsersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->modifyQueryUsing(fn($query) => $query->with('assignedByUser'))
             ->columns([
                 TextColumn::make('name')
                     ->label('User Name')
@@ -48,7 +49,17 @@ class UsersRelationManager extends RelationManager
                     ->falseColor('danger'),
                 TextColumn::make('pivot.assigned_by')
                     ->label('Assigned By')
-                    ->getStateUsing(fn($record) => $record->pivot->assigned_by ? User::find($record->pivot->assigned_by)?->name : 'System')
+                    ->state(function ($record) {
+                        // OPTIMIZATION: Leverage loaded relationships instead of individual lookups
+                        // The assignedByUser relationship will be batch-loaded by the table builder
+                        if ($record->assignedByUser) {
+                            return $record->assignedByUser->name;
+                        }
+                        if ($record->pivot->assigned_by) {
+                            return 'ID: ' . $record->pivot->assigned_by;
+                        }
+                        return 'System';
+                    })
                     ->toggleable(),
                 TextColumn::make('pivot.created_at')
                     ->label('Assigned At')

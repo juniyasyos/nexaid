@@ -6,6 +6,7 @@ use  App\Domain\Iam\Models\Application;;
 use App\Services\Contracts\AppRegistryContract;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
@@ -42,7 +43,10 @@ class AppRegistry implements AppRegistryContract
 
     public function enabledList(): Collection
     {
-        return Application::enabled()->get();
+        // OPTIMIZATION: Cache enabled applications for 5 minutes to avoid repeated queries
+        return Cache::remember('iam.enabled_apps', 300, function () {
+            return Application::enabled()->get();
+        });
     }
 
     /**

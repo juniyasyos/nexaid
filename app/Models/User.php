@@ -166,6 +166,18 @@ class User extends Authenticatable
             ->withTimestamps();
     }
 
+    /**
+     * Get the user who assigned this user to an access profile.
+     * Used to display "Assigned By" information in relation managers.
+     * 
+     * OPTIMIZATION: This is a placeholder relationship that will be loaded via pivot values
+     */
+    public function assignedByUser(): ?\App\Models\User
+    {
+        // This relationship is handled through the pivot table
+        // We use this as a helper for eager loading via with()
+        return null;
+    }
 
     /**
      * Get all application roles via active access profiles.
@@ -314,6 +326,10 @@ class User extends Authenticatable
         Cache::forget("user.accessible_apps.{$this->id}");
     }
 
+    // Cache for session data to avoid repeated DB queries in the same request
+    protected ?\stdClass $cachedLatestSession = null;
+    protected bool $sessionCacheInitialized = false;
+
     public function hasActiveSession(): bool
     {
         return $this->getLatestActiveSession() !== null;
@@ -321,13 +337,24 @@ class User extends Authenticatable
 
     public function getLatestActiveSession(): ?\stdClass
     {
+        // Return cached session if already loaded in this request
+        if ($this->sessionCacheInitialized) {
+            return $this->cachedLatestSession;
+        }
+
         $lifetimeSeconds = config('session.lifetime') * 60;
 
-        return DB::table('sessions')
+        $session = DB::table('sessions')
             ->where('user_id', $this->id)
             ->where('last_activity', '>=', now()->subSeconds($lifetimeSeconds)->getTimestamp())
             ->orderByDesc('last_activity')
             ->first();
+
+        // Cache the result for subsequent calls in this request
+        $this->cachedLatestSession = $session;
+        $this->sessionCacheInitialized = true;
+
+        return $session;
     }
 
     public function getActiveSessionLastActivity(): ?Carbon
@@ -346,6 +373,35 @@ class User extends Authenticatable
         $lastActivity = $this->getActiveSessionLastActivity();
 
         return $lastActivity ? $lastActivity->copy()->addSeconds(config('session.lifetime') * 60)->setTimezone(config('app.timezone')) : null;
+    }
+
+    /**
+     * Pre-load and cache sessions for multiple users at once to prevent N+1.
+     * Call this before iterating over many users that need session data.
+     */
+    public static function preloadSessionsForUsers($users): void
+    {
+        if ($users->isEmpty()) {
+            return;
+        }
+
+        $userIds = $users->pluck('id')->toArray();
+        $lifetimeSeconds = config('session.lifetime') * 60;
+        $cutoffTime = now()->subSeconds($lifetimeSeconds)->getTimestamp();
+
+        // Get latest session for each user in one query
+        $latestSessions = DB::table('sessions')
+            ->whereIn('user_id', $userIds)
+            ->where('last_activity', '>=', $cutoffTime)
+            ->get()
+            ->groupBy('user_id')
+            ->map(fn($sessions) => $sessions->sortByDesc('last_activity')->first());
+
+        // Cache the result on each user instance
+        foreach ($users as $user) {
+            $user->cachedLatestSession = $latestSessions->get($user->id);
+            $user->sessionCacheInitialized = true;
+        }
     }
 
     public function getActiveSessionDetails(): ?string

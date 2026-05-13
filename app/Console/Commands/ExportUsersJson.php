@@ -41,10 +41,14 @@ class ExportUsersJson extends Command
             $query->withTrashed();
         }
 
-        $users = $query
-            ->get()
-            ->map(static function (User $user): array {
-                return array_merge($user->getAttributes(), [
+        $path = $this->option('path') ?: 'exports/users.json';
+        $users = [];
+        $totalUsers = 0;
+
+        // OPTIMIZATION: Use chunking to avoid loading entire users table into memory
+        $query->chunk(500, function ($chunk) use (&$users, &$totalUsers) {
+            foreach ($chunk as $user) {
+                $users[] = array_merge($user->getAttributes(), [
                     'accessProfiles' => $user->accessProfiles->pluck('slug')->values()->all(),
                     'unit_kerjas' => $user->unitKerjas->map(static function ($unitKerja): array {
                         return [
@@ -54,8 +58,9 @@ class ExportUsersJson extends Command
                         ];
                     })->values()->all(),
                 ]);
-            })
-            ->toArray();
+                $totalUsers++;
+            }
+        });
 
         $payload = json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
 
@@ -65,12 +70,10 @@ class ExportUsersJson extends Command
             return self::FAILURE;
         }
 
-        $path = $this->option('path') ?: 'exports/users.json';
-
         Storage::disk('local')->put($path, $payload);
 
         $this->info('Users exported: storage/app/' . $path);
-        $this->info('Total users: ' . count($users));
+        $this->info('Total users: ' . $totalUsers);
 
         return self::SUCCESS;
     }
