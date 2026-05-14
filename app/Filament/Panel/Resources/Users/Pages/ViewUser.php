@@ -15,10 +15,13 @@ class ViewUser extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            EditAction::make(),
+            EditAction::make()
+                ->label('Edit User')
+                ->icon('heroicon-o-pencil'),
             RelationManagerAction::make()
                 ->label('Manage Role Bundles')
                 ->record($this->getRecord())
+                ->icon('heroicon-o-shield-check')
                 ->slideOver()
                 ->relationManager(AccessProfilesRelationManager::make()),
         ];

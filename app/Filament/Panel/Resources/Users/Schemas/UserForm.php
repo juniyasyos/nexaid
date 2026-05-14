@@ -80,12 +80,15 @@ class UserForm
                                     ]),
 
                                 Section::make('Informasi Pribadi')
+                                    ->collapsible()
+                                    ->collapsed()
                                     ->description('Detail tambahan terkait identitas pengguna.')
                                     ->schema([
                                         Grid::make(2)
                                             ->schema([
                                                 TextInput::make('place_of_birth')
                                                     ->label('Tempat Lahir')
+                                                    ->nullable()
                                                     ->placeholder('Jakarta')
                                                     ->helperText('Kota atau kabupaten tempat lahir.')
                                                     ->prefixIcon('heroicon-m-map-pin'),
@@ -99,11 +102,11 @@ class UserForm
                                                 Select::make('gender')
                                                     ->label('Jenis Kelamin')
                                                     ->options([
-                                                        'male' => 'Laki-laki',
-                                                        'female' => 'Perempuan',
-                                                        'other' => 'Lainnya',
+                                                        'male' => '🧑Laki-laki',
+                                                        'female' => '👩Perempuan',
                                                     ])
                                                     ->nullable()
+                                                    ->prefixIcon('heroicon-m-user')
                                                     ->placeholder('Pilih jenis kelamin')
                                                     ->helperText('Jenis kelamin untuk data demografis.'),
 
@@ -156,6 +159,7 @@ class UserForm
 
                                                 Select::make('status')
                                                     ->label('Status')
+                                                    ->prefixIcon('heroicon-m-flag')
                                                     ->options([
                                                         'active' => 'Active',
                                                         'inactive' => 'Inactive',
@@ -176,28 +180,32 @@ class UserForm
                     ->columnSpan(4)
                     ->schema([
                         Section::make('Foto & Media')
+                            ->columnSpanFull()
                             ->description('Unggah avatar dan tanda tangan digital pengguna.')
                             ->schema([
-                                FileUpload::make('avatar_url')
-                                    ->label('Avatar Pengguna')
-                                    ->disk(\App\Support\StorageFallback::isS3Available() ? 's3' : 'public')
-                                    ->directory('avatars')
-                                    ->image()
-                                    ->imageEditor()
-                                    ->openable()
-                                    ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg'])
-                                    ->maxSize(2048)
-                                    ->helperText('Unggah foto profil pengguna. Gunakan format PNG/JPG.'),
+                                Grid::make(2)
+                                    ->schema([
+                                        FileUpload::make('avatar_url')
+                                            ->label('Avatar Pengguna')
+                                            ->disk(\App\Support\StorageFallback::isS3Available() ? 's3' : 'public')
+                                            ->directory('avatars')
+                                            ->image()
+                                            ->imageEditor()
+                                            ->openable()
+                                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg'])
+                                            ->maxSize(2048)
+                                            ->helperText('Unggah foto profil pengguna. Gunakan format PNG/JPG.'),
 
-                                FileUpload::make('ttd_url')
-                                    ->label('Tanda Tangan')
-                                    ->disk(\App\Support\StorageFallback::isS3Available() ? 's3' : 'public')
-                                    ->directory('ttd')
-                                    ->image()
-                                    ->openable()
-                                    ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg'])
-                                    ->maxSize(2048)
-                                    ->helperText('Unggah gambar tanda tangan berformat PNG atau JPG.'),
+                                        FileUpload::make('ttd_url')
+                                            ->label('Tanda Tangan')
+                                            ->disk(\App\Support\StorageFallback::isS3Available() ? 's3' : 'public')
+                                            ->directory('ttd')
+                                            ->image()
+                                            ->openable()
+                                            ->acceptedFileTypes(['image/png', 'image/jpeg', 'image/jpg'])
+                                            ->maxSize(2048)
+                                            ->helperText('Unggah gambar tanda tangan berformat PNG atau JPG.'),
+                                    ])
                             ]),
 
                         Section::make('Informasi Sistem')
