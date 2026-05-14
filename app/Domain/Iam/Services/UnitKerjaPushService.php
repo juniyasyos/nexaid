@@ -197,7 +197,7 @@ class UnitKerjaPushService
             throw new \InvalidArgumentException('Application has no callback/backchannel URL configured for unit kerja push.');
         }
 
-        return $base . '/api/manage-unit-kerja/client/push?app_key=' . urlencode($appKey);
+        return $base . '/api/manage-unit-kerja/api/iam/push-unit-kerja?app_key=' . urlencode($appKey);
     }
 
     protected function getBackchannelUrl(Application $application): ?string
