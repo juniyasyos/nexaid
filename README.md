@@ -146,6 +146,8 @@ Default panel path is `/panel` and can be customized via `PANEL_PATH` in `.env`.
 
 Client applications connect using an `app_key` and a registered redirect URI.
 
+- 📘 **Panduan otorisasi role-permission + unit kerja (untuk app client):** lihat `docs/role-permission-client-best-practices.md`
+
 ### Sample SSO flow
 
 1. Redirect the user to:

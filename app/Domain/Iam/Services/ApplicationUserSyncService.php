@@ -688,7 +688,7 @@ class ApplicationUserSyncService
                     // Filter by application_id in the pivot table (iam_user_application_roles)
                     $q->where('iam_user_application_roles.application_id', $application->id);
                 },
-                'unitKerjas:id,unit_name', // Only load needed columns
+                'unitKerjas:id,unit_name,description,slug', // Load full unit kerja details for sync payloads
             ])
             ->get();
 
@@ -724,11 +724,29 @@ class ApplicationUserSyncService
                 'name' => $user->name ?: ($user->nip ?? 'User'),  // Fallback to NIP or generic name
                 'status' => $user->status,
                 'active' => $user->status === 'active',
-                'unit_kerja' => $user->unitKerjas->pluck('unit_name')->toArray(),
+                'unit_kerja' => $this->formatUnitKerjaPayload($user->unitKerjas),
                 'roles' => array_values($roles), // Re-index array
             ];
         })->toArray();
     }
+
+    /**
+     * Format unit kerja relationship into a payload that preserves description.
+     */
+    protected function formatUnitKerjaPayload($unitKerjas): array
+    {
+        return $unitKerjas
+            ->map(fn($unitKerja) => [
+                'id' => $unitKerja->id,
+                'slug' => $unitKerja->slug,
+                'unit_name' => $unitKerja->unit_name,
+                'description' => $unitKerja->description,
+            ])
+            ->values()
+            ->toArray();
+    }
+
+    /**
 
     protected function resolveStatusValue(array $data, ?string $fallback = null): ?string
     {

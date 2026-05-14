@@ -7,6 +7,7 @@ use App\Jobs\SyncApplicationUsers;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Queue;
 use App\Models\User;
+use App\Models\UnitKerja;
 use App\Domain\Iam\Services\ApplicationUserSyncService;
 
 beforeEach(function () {
@@ -311,6 +312,53 @@ it('pushes IAM users to client when user_sync_mode is push', function () {
         return $request->url() === 'http://client.test/api/iam/push-users?app_key=abc'
             && $request->method() === 'POST'
             && collect($request->data()['users'])->pluck('email')->contains('push@example.com');
+    });
+});
+
+it('includes unit kerja descriptions when pushing IAM users to a client', function () {
+    config(['iam.user_sync_mode' => 'push']);
+
+    $app = Application::factory()->create([
+        'callback_url' => 'http://client.test',
+        'app_key' => 'unit-desc',
+    ]);
+
+    $role = ApplicationRole::create([
+        'application_id' => $app->id,
+        'slug' => 'direct',
+        'name' => 'Direct Role',
+    ]);
+
+    $unitKerja = UnitKerja::create([
+        'unit_name' => 'Rekam Medis',
+        'description' => 'Mengelola rekam medis pasien',
+    ]);
+
+    $user = User::create([
+        'nip' => '1009',
+        'name' => 'Unit Tester',
+        'email' => 'unit@example.com',
+        'password' => 'secret123',
+        'status' => 'active',
+    ]);
+    $user->applicationRoles()->attach($role->id, ['application_id' => $app->id]);
+    $user->unitKerjas()->attach($unitKerja->id);
+
+    Http::fake([
+        'http://client.test/api/iam/push-users*' => Http::response(['success' => true], 200),
+    ]);
+
+    $service = new ApplicationUserSyncService();
+    $service->syncUsers($app);
+
+    Http::assertSent(function ($request) use ($user, $unitKerja) {
+        $unitPayload = data_get($request->data(), 'users.0.unit_kerja.0');
+
+        return $request->method() === 'POST'
+            && data_get($request->data(), 'users.0.email') === $user->email
+            && data_get($unitPayload, 'id') === $unitKerja->id
+            && data_get($unitPayload, 'unit_name') === $unitKerja->unit_name
+            && data_get($unitPayload, 'description') === $unitKerja->description;
     });
 });
 
