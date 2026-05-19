@@ -1,6 +1,8 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import axios from 'axios';
-import LoginDefaultView from './Login/LoginDefaultView';
+
+const LoginViewType1 = lazy(() => import('./Login/LoginViewType1'));
+const LoginDefaultView = lazy(() => import('./Login/LoginDefaultView'));
 
 interface CompanyData {
   name?: string;
@@ -23,6 +25,7 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
   const [showPassword, setShowPassword] = useState(false);
   const [showError, setShowError] = useState(false);
   const [companyName, setCompanyName] = useState<string>('');
+  const [viewType, setViewType] = useState<'type1' | 'default' | null>(null);
 
   // Auto-fill untuk development mode
   useEffect(() => {
@@ -57,6 +60,21 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
 
     loadCompanyData();
 
+    // load login view preference (lightweight)
+    const loadViewPref = async () => {
+      try {
+        const r = await axios.get('/api/settings/login-view');
+        if (isMounted) {
+          const v = r.data?.value ?? 'type1';
+          setViewType(v === 'default' ? 'default' : 'type1');
+        }
+      } catch (err) {
+        if (isMounted) setViewType('type1');
+      }
+    };
+
+    loadViewPref();
+
     return () => {
       isMounted = false;
     };
@@ -81,22 +99,32 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
     }
   };
 
+  if (!viewType) return null; // still loading preference
+
+  const commonProps = {
+    nip,
+    setNip,
+    password,
+    setPassword,
+    focusedInput,
+    setFocusedInput,
+    showPassword,
+    setShowPassword,
+    showError,
+    onCloseError: () => setShowError(false),
+    handleSubmit,
+    isLoading: Boolean(isLoading),
+    error,
+    companyName,
+  } as const;
+
   return (
-    <LoginDefaultView
-      nip={nip}
-      setNip={setNip}
-      password={password}
-      setPassword={setPassword}
-      focusedInput={focusedInput}
-      setFocusedInput={setFocusedInput}
-      showPassword={showPassword}
-      setShowPassword={setShowPassword}
-      showError={showError}
-      onCloseError={() => setShowError(false)}
-      handleSubmit={handleSubmit}
-      isLoading={Boolean(isLoading)}
-      error={error}
-      companyName={companyName}
-    />
+    <Suspense fallback={null}>
+      {viewType === 'default' ? (
+        <LoginDefaultView {...commonProps} />
+      ) : (
+        <LoginViewType1 {...commonProps} />
+      )}
+    </Suspense>
   );
 }

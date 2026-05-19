@@ -7,6 +7,7 @@ return [
         'iam' => 'IAM',
         'auth' => 'Authentication',
         'fortify' => 'Fortify',
+        'ui' => 'User Interface',
     ],
 
     'definitions' => [
@@ -430,6 +431,15 @@ return [
             'default' => true,
             'description' => 'Whether usernames should be lowercased',
             'source' => 'config/fortify.php:lowercase_usernames',
+        ],
+        'login_view' => [
+            'group' => 'ui',
+            'type' => 'string',
+            'input_type' => 'select',
+            'select_options' => ['default', 'type1'],
+            'default' => 'type1',
+            'description' => 'Select which login page variant to load',
+            'source' => 'resources/js/components/Login.tsx',
         ],
         'fortify.home' => [
             'group' => 'fortify',

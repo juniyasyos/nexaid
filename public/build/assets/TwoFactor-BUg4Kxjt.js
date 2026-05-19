@@ -1,1 +1,0 @@
-import{j as t}from"./app-U_tT4VQm.js";function s(){return t.jsxs("div",{className:"p-6",children:[t.jsx("h1",{className:"text-3xl font-bold mb-6",children:"Two-Factor Authentication"}),t.jsx("div",{className:"bg-white rounded-lg shadow p-6",children:t.jsx("p",{className:"text-gray-600",children:"Two-Factor Authentication settings go here"})})]})}export{s as default};

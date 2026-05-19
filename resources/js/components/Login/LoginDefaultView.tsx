@@ -32,6 +32,7 @@ export default function LoginDefaultView({
   showError,
   onCloseError,
   handleSubmit,
+  companyName,
   isLoading,
   error,
 }: Props) {
@@ -148,7 +149,7 @@ export default function LoginDefaultView({
                 className={`w-full pl-10 pr-12 py-4 bg-transparent border-b-2 border-slate-200 transition-all duration-300 outline-none text-slate-700 placeholder:text-slate-400 focus:border-blue-500 focus:pl-12 ${import.meta.env.VITE_APP_ENV === 'dev' && password ? 'bg-orange-50/50' : ''}`}
                 required
               />
-              <button type="button" onClick={() => setShowPassword((p) => !p)} className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200" tabIndex={-1}>
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-0 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-500 transition-colors duration-200" tabIndex={-1}>
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
               <div className={`absolute bottom-0 left-0 h-0.5 bg-gradient-to-r from-blue-400 to-cyan-400 transition-all duration-300 ${focusedInput === 'password' ? 'w-full' : 'w-0'}`} />

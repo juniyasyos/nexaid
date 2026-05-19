@@ -3,35 +3,35 @@
     "file": "assets/Login-CdZw4KHG.css",
     "src": "_Login-CdZw4KHG.css"
   },
-  "_Login-D1zzpvAy.js": {
-    "file": "assets/Login-D1zzpvAy.js",
+  "_Login-xzdm3oR8.js": {
+    "file": "assets/Login-xzdm3oR8.js",
     "name": "Login",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_useAuth-DlIF2TOU.js"
+      "_useAuth-B3EIs2E7.js"
     ],
     "css": [
       "assets/Login-CdZw4KHG.css"
     ]
   },
-  "_RegisterPage-C2cf9181.js": {
-    "file": "assets/RegisterPage-C2cf9181.js",
+  "_RegisterPage-BI8i8V4B.js": {
+    "file": "assets/RegisterPage-BI8i8V4B.js",
     "name": "RegisterPage",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx"
     ]
   },
-  "_useAuth-DlIF2TOU.js": {
-    "file": "assets/useAuth-DlIF2TOU.js",
+  "_useAuth-B3EIs2E7.js": {
+    "file": "assets/useAuth-B3EIs2E7.js",
     "name": "useAuth",
     "imports": [
       "resources/js/app.tsx"
     ]
   },
   "resources/css/filament/panel/theme.css": {
-    "file": "assets/theme-DvNfAhpX.css",
+    "file": "assets/theme-BmuyIZDU.css",
     "src": "resources/css/filament/panel/theme.css",
     "isEntry": true,
     "names": [
@@ -39,19 +39,19 @@
     ]
   },
   "resources/js/app.tsx": {
-    "file": "assets/app-U_tT4VQm.js",
+    "file": "assets/app-JAURnm-s.js",
     "name": "app",
     "src": "resources/js/app.tsx",
     "isEntry": true,
     "dynamicImports": [
-      "_Login-D1zzpvAy.js",
-      "_RegisterPage-C2cf9181.js",
+      "_Login-xzdm3oR8.js",
+      "_RegisterPage-BI8i8V4B.js",
       "resources/js/pages/Dashboard/DashboardPage.tsx",
       "resources/js/pages/auth/ConfirmPassword.tsx",
       "resources/js/pages/auth/ForgotPassword.tsx",
       "resources/js/pages/auth/Inactive.tsx",
-      "_Login-D1zzpvAy.js",
-      "_RegisterPage-C2cf9181.js",
+      "_Login-xzdm3oR8.js",
+      "_RegisterPage-BI8i8V4B.js",
       "resources/js/pages/auth/ResetPassword.tsx",
       "resources/js/pages/auth/TwoFactorChallenge.tsx",
       "resources/js/pages/auth/VerifyEmail.tsx",
@@ -65,17 +65,17 @@
     ]
   },
   "resources/js/pages/Dashboard/DashboardPage.tsx": {
-    "file": "assets/DashboardPage-EW8SmU21.js",
+    "file": "assets/DashboardPage-BijJAW5m.js",
     "name": "DashboardPage",
     "src": "resources/js/pages/Dashboard/DashboardPage.tsx",
     "isDynamicEntry": true,
     "imports": [
       "resources/js/app.tsx",
-      "_useAuth-DlIF2TOU.js"
+      "_useAuth-B3EIs2E7.js"
     ]
   },
   "resources/js/pages/auth/ConfirmPassword.tsx": {
-    "file": "assets/ConfirmPassword-DoDvhEyJ.js",
+    "file": "assets/ConfirmPassword-DvmTe3U1.js",
     "name": "ConfirmPassword",
     "src": "resources/js/pages/auth/ConfirmPassword.tsx",
     "isDynamicEntry": true,
@@ -84,7 +84,7 @@
     ]
   },
   "resources/js/pages/auth/ForgotPassword.tsx": {
-    "file": "assets/ForgotPassword-XJpaeSqi.js",
+    "file": "assets/ForgotPassword-CwVy0qyA.js",
     "name": "ForgotPassword",
     "src": "resources/js/pages/auth/ForgotPassword.tsx",
     "isDynamicEntry": true,
@@ -93,7 +93,7 @@
     ]
   },
   "resources/js/pages/auth/Inactive.tsx": {
-    "file": "assets/Inactive-DVZf7Su_.js",
+    "file": "assets/Inactive-BMN_1Win.js",
     "name": "Inactive",
     "src": "resources/js/pages/auth/Inactive.tsx",
     "isDynamicEntry": true,
@@ -102,7 +102,7 @@
     ]
   },
   "resources/js/pages/auth/ResetPassword.tsx": {
-    "file": "assets/ResetPassword-dLzxv-Sa.js",
+    "file": "assets/ResetPassword-BGGAb3oG.js",
     "name": "ResetPassword",
     "src": "resources/js/pages/auth/ResetPassword.tsx",
     "isDynamicEntry": true,
@@ -111,7 +111,7 @@
     ]
   },
   "resources/js/pages/auth/TwoFactorChallenge.tsx": {
-    "file": "assets/TwoFactorChallenge-BJFtTza6.js",
+    "file": "assets/TwoFactorChallenge-DFUVh09_.js",
     "name": "TwoFactorChallenge",
     "src": "resources/js/pages/auth/TwoFactorChallenge.tsx",
     "isDynamicEntry": true,
@@ -120,7 +120,7 @@
     ]
   },
   "resources/js/pages/auth/VerifyEmail.tsx": {
-    "file": "assets/VerifyEmail-_NancHHr.js",
+    "file": "assets/VerifyEmail-CO0kyrDD.js",
     "name": "VerifyEmail",
     "src": "resources/js/pages/auth/VerifyEmail.tsx",
     "isDynamicEntry": true,
@@ -129,7 +129,7 @@
     ]
   },
   "resources/js/pages/settings/Appearance.tsx": {
-    "file": "assets/Appearance-D1Jx5Cqv.js",
+    "file": "assets/Appearance-DCIo_OL1.js",
     "name": "Appearance",
     "src": "resources/js/pages/settings/Appearance.tsx",
     "isDynamicEntry": true,
@@ -138,7 +138,7 @@
     ]
   },
   "resources/js/pages/settings/Password.tsx": {
-    "file": "assets/Password-D4w7nByz.js",
+    "file": "assets/Password-DKhesL4f.js",
     "name": "Password",
     "src": "resources/js/pages/settings/Password.tsx",
     "isDynamicEntry": true,
@@ -147,7 +147,7 @@
     ]
   },
   "resources/js/pages/settings/Profile.tsx": {
-    "file": "assets/Profile-CK95yusa.js",
+    "file": "assets/Profile-CWQ793-C.js",
     "name": "Profile",
     "src": "resources/js/pages/settings/Profile.tsx",
     "isDynamicEntry": true,
@@ -156,7 +156,7 @@
     ]
   },
   "resources/js/pages/settings/TwoFactor.tsx": {
-    "file": "assets/TwoFactor-BUg4Kxjt.js",
+    "file": "assets/TwoFactor-DmQgLLr1.js",
     "name": "TwoFactor",
     "src": "resources/js/pages/settings/TwoFactor.tsx",
     "isDynamicEntry": true,
