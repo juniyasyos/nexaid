@@ -15,20 +15,9 @@ class SettingsSeeder extends Seeder
 
         Setting::upsert([
             [
-                'key' => 'ui.login_view.default',
+                'key' => 'login_view',
                 'category' => 'ui',
-                'type' => 'boolean',
-                'input_type' => 'toggle',
-                'value' => true,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ],
-            [
-                'key' => 'ui.login_view.type1',
-                'category' => 'ui',
-                'type' => 'boolean',
-                'input_type' => 'toggle',
-                'value' => false,
+                'value' => 'type1',
                 'created_at' => now(),
                 'updated_at' => now(),
             ],

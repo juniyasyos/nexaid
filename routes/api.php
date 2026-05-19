@@ -21,7 +21,8 @@ Route::get('/company', [CompanyController::class, 'show']);
 
 // Lightweight setting endpoint for selecting which login view to use
 Route::get('/settings/login-view', function () {
-    $value = DB::table('settings')->where('key', 'ui.login_view.default')->value('value');
+    $value = DB::table('settings')->where('key', 'login_view')->value('value');
+
     return response()->json(['value' => $value ?? 'type1']);
 });
 

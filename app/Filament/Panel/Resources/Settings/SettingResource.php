@@ -9,6 +9,7 @@ use App\Filament\Panel\Resources\Settings\Pages\IamSettings;
 use App\Filament\Panel\Resources\Settings\Pages\SettingsHome;
 use App\Filament\Panel\Resources\Settings\Pages\SsoSettings;
 use App\Filament\Panel\Resources\Settings\Pages\EditSetting;
+use App\Filament\Panel\Resources\Settings\Pages\UiSettings;
 use App\Filament\Panel\Resources\Settings\Pages\ListSettings;
 use App\Filament\Panel\Resources\Settings\Schemas\SettingForm;
 use App\Filament\Panel\Resources\Settings\Tables\SettingsTable;
@@ -56,6 +57,7 @@ class SettingResource extends Resource
             'index' => SettingsHome::route('/'),
             'company' => CompanySettings::route('/company'),
             'sso' => SsoSettings::route('/sso'),
+            'ui' => UiSettings::route('/ui'),
             'iam' => IamSettings::route('/iam'),
             'auth' => AuthSettings::route('/auth'),
             'fortify' => FortifySettings::route('/fortify'),
