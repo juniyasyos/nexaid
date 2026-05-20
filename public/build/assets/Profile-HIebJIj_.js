@@ -1,0 +1,1 @@
+import{j as e}from"./app-mb6EOihl.js";function r({data:s}){return e.jsxs("div",{className:"p-6",children:[e.jsx("h1",{className:"text-3xl font-bold mb-6",children:"Profile Settings"}),e.jsx("div",{className:"bg-white rounded-lg shadow p-6",children:e.jsx("p",{className:"text-gray-600",children:"Profile settings content goes here"})})]})}export{r as default};

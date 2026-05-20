@@ -26,7 +26,7 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
   const [showPassword, setShowPassword] = useState(false);
   const [showError, setShowError] = useState(false);
   const [companyName, setCompanyName] = useState<string>('');
-  const [viewType, setViewType] = useState<'type1' | 'default' | null>(null);
+  const [viewType, setViewType] = useState<'type1' | 'type2' | 'default' | null>(null);
 
   // Auto-fill untuk development mode
   useEffect(() => {
@@ -67,7 +67,7 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
         const r = await axios.get('/api/settings/login-view');
         if (isMounted) {
           const v = r.data?.value ?? 'type1';
-          setViewType(v === 'default' ? 'default' : 'type1');
+          setViewType(v === 'default' ? 'default' : v === 'type2' ? 'type2' : 'type1');
         }
       } catch (err) {
         if (isMounted) setViewType('type1');
@@ -121,7 +121,13 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
 
   return (
     <Suspense fallback={null}>
-      <LoginViewType2 {...commonProps} />
+      {viewType === 'default' ? (
+        <LoginDefaultView {...commonProps} />
+      ) : viewType === 'type1' ? (
+        <LoginViewType1 {...commonProps} />
+      ) : viewType === 'type2' ? (
+        <LoginViewType2 {...commonProps} />
+      ) : null}
     </Suspense>
   );
 }

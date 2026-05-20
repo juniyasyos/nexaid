@@ -3,55 +3,43 @@ import { Eye, EyeOff, Lock, User, AlertCircle, ArrowRight, ShieldCheck } from "l
 import { Button, Input } from "./Button";
 import "../../../css/components/login.css";
 
-const LoginForm: React.FC = () => {
-    const [nip, setNip] = useState<string>("");
-    const [password, setPassword] = useState<string>("");
-    const [showPassword, setShowPassword] = useState<boolean>(false);
+interface LoginFormProps {
+    nip: string;
+    setNip: (v: string) => void;
+    password: string;
+    setPassword: (v: string) => void;
+    showPassword: boolean;
+    setShowPassword: (v: boolean) => void;
+    focusedInput?: string | null;
+    setFocusedInput?: (v: string | null) => void;
+    handleSubmit: (e: FormEvent<HTMLFormElement>) => void;
+    isLoading: boolean;
+    error?: string | null;
+    showError?: boolean;
+    onCloseError?: () => void;
+}
+
+const LoginForm: React.FC<LoginFormProps> = ({
+    nip,
+    setNip,
+    password,
+    setPassword,
+    showPassword,
+    setShowPassword,
+    focusedInput,
+    setFocusedInput,
+    handleSubmit,
+    isLoading,
+    error,
+    showError,
+    onCloseError,
+}) => {
     const [remember, setRemember] = useState<boolean>(true);
-    const [errors, setErrors] = useState<{ nip?: string; password?: string }>({});
-    const [authError, setAuthError] = useState<string>("");
-    const [loading, setLoading] = useState<boolean>(false);
-    const [shake, setShake] = useState<boolean>(false);
-
-    const triggerShake = () => {
-        setShake(true);
-        window.setTimeout(() => setShake(false), 350);
-    };
-
-    const validate = () => {
-        const e: { nip?: string; password?: string } = {};
-        if (!nip.trim()) e.nip = "NIP is required";
-        else if (nip.trim().length < 4) e.nip = "NIP must be at least 4 characters";
-        if (!password) e.password = "Password is required";
-        else if (password.length < 6) e.password = "Password must be at least 6 characters";
-        return e;
-    };
-
-    const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
-        event.preventDefault();
-        setAuthError("");
-        const v = validate();
-        setErrors(v);
-        if (Object.keys(v).length > 0) {
-            triggerShake();
-            return;
-        }
-        setLoading(true);
-        window.setTimeout(() => {
-            setLoading(false);
-            if (nip === "admin" && password === "admin123") {
-                setAuthError("");
-            } else {
-                setAuthError("Invalid NIP or password. Please try again.");
-                triggerShake();
-            }
-        }, 1200);
-    };
 
     return (
         <div
             data-testid="v2-login-form-wrapper"
-            className={["w-full max-w-md", shake ? "animate-shake" : ""].join(" ")}
+            className="w-full max-w-md"
         >
             {/* Mobile brand chip */}
             <div className="mb-8 flex items-center gap-3 lg:hidden">
@@ -81,14 +69,23 @@ const LoginForm: React.FC = () => {
                 </p>
             </header>
 
-            {authError && (
+            {showError && error && (
                 <div
                     data-testid="v2-auth-error"
                     role="alert"
-                    className="mb-5 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700"
+                    className="mb-5 flex items-start gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 animate-fadeIn"
                 >
                     <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-rose-500" />
-                    <span>{authError}</span>
+                    <span>{error}</span>
+                    {onCloseError && (
+                        <button
+                            type="button"
+                            onClick={onCloseError}
+                            className="ml-auto text-rose-500 hover:text-rose-700"
+                        >
+                            ✕
+                        </button>
+                    )}
                 </div>
             )}
 
@@ -107,7 +104,8 @@ const LoginForm: React.FC = () => {
                     placeholder="e.g. 1987654321"
                     value={nip}
                     onChange={(e) => setNip(e.target.value)}
-                    error={errors.nip}
+                    onFocus={() => setFocusedInput?.("nip")}
+                    onBlur={() => setFocusedInput?.(null)}
                     leftIcon={<User className="h-5 w-5" />}
                 />
 
@@ -119,13 +117,14 @@ const LoginForm: React.FC = () => {
                     placeholder="Enter your password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    error={errors.password}
+                    onFocus={() => setFocusedInput?.("password")}
+                    onBlur={() => setFocusedInput?.(null)}
                     leftIcon={<Lock className="h-5 w-5" />}
                     rightSlot={
                         <button
                             type="button"
                             data-testid="v2-toggle-password"
-                            onClick={() => setShowPassword((s) => !s)}
+                            onClick={() => setShowPassword(!showPassword)}
                             aria-label={showPassword ? "Hide password" : "Show password"}
                             className="rounded-md p-1.5 text-slate-400 transition hover:text-slate-700 hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-cyan-400/50"
                         >
@@ -171,21 +170,10 @@ const LoginForm: React.FC = () => {
                     </a>
                 </div>
 
-                <Button type="submit" loading={loading} data-testid="v2-signin-button">
+                <Button type="submit" loading={isLoading} data-testid="v2-signin-button">
                     <span>Sign in</span>
                     <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-0.5" />
                 </Button>
-
-                <p className="pt-2 text-center text-xs text-slate-400">
-                    Demo credentials —{" "}
-                    <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-700">
-                        admin
-                    </code>{" "}
-                    /{" "}
-                    <code className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[11px] text-slate-700">
-                        admin123
-                    </code>
-                </p>
             </form>
         </div>
     );

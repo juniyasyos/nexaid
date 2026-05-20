@@ -1,6 +1,5 @@
 import React from "react";
 import { ShieldCheck, Activity } from "lucide-react";
-import TrustBadge from "./TrustBadge";
 
 const Sidebar: React.FC = () => {
     return (
@@ -107,13 +106,6 @@ const Sidebar: React.FC = () => {
                             </div>
                         </div>
                     </div>
-                </div>
-
-                {/* Bottom — trust info */}
-                <div data-testid="v2-trust-row" className="grid grid-cols-3 gap-3">
-                    <TrustBadge title="99.98%" subtitle="Uptime" />
-                    <TrustBadge title="ISO 27001" subtitle="Compliant" />
-                    <TrustBadge title="All systems" subtitle="Operational" pulse />
                 </div>
             </div>
         </aside>
