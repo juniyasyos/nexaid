@@ -61,7 +61,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
                     data-testid="v2-form-title"
                     className="mt-5 text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl animate-fade-up delay-100"
                 >
-                    Admin Login
+                    Login
                 </h1>
                 <p data-testid="v2-form-subtitle" className="mt-3 text-sm text-slate-500 animate-fade-up delay-200">
                     Secure access to system dashboard. Use your hospital credentials to
