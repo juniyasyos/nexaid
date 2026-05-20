@@ -155,6 +155,20 @@ class UserRoleAssignmentService
      */
     public function syncProfilesForUserAndApp(User $user, Application $app, array $roleSlugs, ?User $assignedBy = null): void
     {
+        // Skip disabled applications
+        if (!$app->enabled) {
+            \Illuminate\Support\Facades\Log::warning('user_sync_app_disabled', [
+                'application_id' => $app->id,
+                'app_key' => $app->app_key,
+                'user_id' => $user->id,
+                'user_email' => $user->email,
+                'user_nip' => $user->nip,
+                'message' => 'Skipping role sync for disabled application',
+            ]);
+
+            return;
+        }
+
         // always validate role slugs against the application roles table.
         // this avoids touching the old pivot entirely and works whether or not
         // the migration has been executed.

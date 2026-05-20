@@ -132,6 +132,7 @@ class UserDataService
 
     /**
      * Format all applications and their roles.
+     * Skip disabled applications.
      */
     private function formatAllApplicationsAndRoles(Collection $roles): array
     {
@@ -140,6 +141,12 @@ class UserDataService
             ->map(function ($appRoles, $appKey) {
                 $firstRole = $appRoles->first();
                 $app = $firstRole->application;
+
+                // Skip disabled applications
+                if (!$app->enabled) {
+                    return null;
+                }
+
                 $primaryUrl = $this->getPrimaryUrl($app->redirect_uris);
 
                 return [
@@ -160,12 +167,14 @@ class UserDataService
                     ])->values()->toArray(),
                 ];
             })
+            ->filter()
             ->values()
             ->toArray();
     }
 
     /**
      * Format access profiles.
+     * Skip roles from disabled applications.
      */
     private function formatAccessProfiles(User $user): array
     {
@@ -174,25 +183,35 @@ class UserDataService
             ->where('is_active', true)
             ->get()
             ->map(function ($profile) {
+                // Filter out roles from disabled applications
+                $enabledRoles = $profile->roles->filter(fn($role) => $role->application && $role->application->enabled);
+
+                // Skip profile if no enabled roles
+                if ($enabledRoles->isEmpty()) {
+                    return null;
+                }
+
                 return [
                     'id' => $profile->id,
                     'slug' => $profile->slug,
                     'name' => $profile->name,
                     'description' => $profile->description,
                     'is_system' => $profile->is_system,
-                    'roles_count' => $profile->roles->count(),
-                    'roles' => $profile->roles->map(fn($role) => [
+                    'roles_count' => $enabledRoles->count(),
+                    'roles' => $enabledRoles->map(fn($role) => [
                         'app_key' => $role->application->app_key,
                         'role_slug' => $role->slug,
                         'role_name' => $role->name,
                     ])->toArray(),
                 ];
             })
+            ->filter()
             ->toArray();
     }
 
     /**
      * Format direct role assignments (not via profiles).
+     * Skip disabled applications.
      */
     private function formatDirectRoles(User $user, ?Application $application = null): array
     {
@@ -208,13 +227,16 @@ class UserDataService
             $query->where('iam_user_application_roles.application_id', $application->id);
         }
 
-        return $query->get()->map(fn($role) => [
-            'app_key' => $role->application->app_key,
-            'role_id' => $role->id,
-            'role_slug' => $role->slug,
-            'role_name' => $role->name,
-            'is_system' => $role->is_system,
-        ])->toArray();
+        return $query->get()
+            ->filter(fn($role) => $role->application && $role->application->enabled)
+            ->map(fn($role) => [
+                'app_key' => $role->application->app_key,
+                'role_id' => $role->id,
+                'role_slug' => $role->slug,
+                'role_name' => $role->name,
+                'is_system' => $role->is_system,
+            ])
+            ->toArray();
     }
 
     /**

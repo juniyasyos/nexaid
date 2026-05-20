@@ -14,6 +14,20 @@ class UnitKerjaPushService
 {
     public function push(Application $application, ?int $unitKerjaId = null): array
     {
+        // Skip disabled applications
+        if (!$application->enabled) {
+            Log::info('iam.push_unit_kerja_skipped', [
+                'app_key' => $application->app_key,
+                'application_id' => $application->id,
+                'reason' => 'Application is disabled',
+            ]);
+
+            return [
+                'success' => false,
+                'error' => 'Application is disabled and cannot receive push updates.',
+            ];
+        }
+
         $payload = $this->buildPayload($unitKerjaId);
         $pushUrl = $this->buildPushUrl($application, $application->app_key);
 
