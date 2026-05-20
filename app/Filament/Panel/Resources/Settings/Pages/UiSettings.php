@@ -17,9 +17,9 @@ use Throwable;
 class UiSettings extends Page
 {
     private const LOGIN_VIEW_IMAGES = [
-        'default' => 'images/login-page/default.jpeg',
-        'type1' => 'images/login-page/login-type-1.jpeg',
-        'type2' => 'images/login-page/login-type-2.jpeg',
+        'default' => 'login-page/default.jpeg',
+        'type1' => 'login-page/login-type-1.jpeg',
+        'type2' => 'login-page/login-type-2.jpeg',
     ];
 
     protected static string $resource = SettingResource::class;
@@ -83,7 +83,7 @@ class UiSettings extends Page
             return 's3';
         }
 
-        return 'public';
+        return 's3';
     }
 
     private function allLoginViewImagesExistOnDisk(string $disk): bool
