@@ -11,9 +11,17 @@ use Filament\Resources\Pages\Page;
 use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
+use Illuminate\Support\Facades\Storage;
+use Throwable;
 
 class UiSettings extends Page
 {
+    private const LOGIN_VIEW_IMAGES = [
+        'default' => 'images/login-page/default.jpeg',
+        'type1' => 'images/login-page/login-type-1.jpeg',
+        'type2' => 'images/login-page/login-type-2.jpeg',
+    ];
+
     protected static string $resource = SettingResource::class;
 
     protected static ?string $title = 'UI Settings';
@@ -45,14 +53,12 @@ class UiSettings extends Page
                         $imgClass = '\\Alkoumi\\FilamentImageRadioButton\\Forms\\Components\\ImageRadioGroup';
 
                         if (class_exists($imgClass)) {
+                            $imageDisk = $this->resolveLoginViewImageDisk();
+
                             return $imgClass::make('login_view')
                                 ->label('')
-                                ->disk('public')
-                                ->options([
-                                    'default' => 'images/login-page/default.jpeg',
-                                    'type1' => 'images/login-page/login-type-1.jpeg',
-                                    'type2' => 'images/login-page/login-type-2.jpeg',
-                                ])
+                                ->disk($imageDisk)
+                                ->options(self::LOGIN_VIEW_IMAGES)
                                 ->gridColumns(2)
                                 ->required();
                         }
@@ -69,6 +75,32 @@ class UiSettings extends Page
                     })()),
                     ])
             ]);
+    }
+
+    private function resolveLoginViewImageDisk(): string
+    {
+        if ($this->allLoginViewImagesExistOnDisk('s3')) {
+            return 's3';
+        }
+
+        return 'public';
+    }
+
+    private function allLoginViewImagesExistOnDisk(string $disk): bool
+    {
+        try {
+            $filesystem = Storage::disk($disk);
+
+            foreach (self::LOGIN_VIEW_IMAGES as $path) {
+                if (! $filesystem->exists($path)) {
+                    return false;
+                }
+            }
+
+            return true;
+        } catch (Throwable) {
+            return false;
+        }
     }
 
     public function save(): void
