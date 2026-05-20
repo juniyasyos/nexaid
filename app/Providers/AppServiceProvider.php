@@ -18,6 +18,8 @@ use App\Services\AppRegistry;
 use App\Services\SettingService;
 use App\Services\Contracts\AppRegistryContract;
 use Illuminate\Contracts\Auth\Access\Gate;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -47,6 +49,17 @@ class AppServiceProvider extends ServiceProvider
 
         $gate->define('viewPulse', function (User $user) {
             return true;
+        });
+
+        View::composer('*', function ($view): void {
+            $request = app(Request::class);
+            $isAuthenticated = auth()->check();
+            $isAuthRoute = $request->routeIs('login')
+                || $request->routeIs('register')
+                || $request->is('login')
+                || $request->is('register');
+
+            $view->with('shouldDisableZoom', $isAuthenticated || $isAuthRoute);
         });
 
         User::observe(UserObserver::class);

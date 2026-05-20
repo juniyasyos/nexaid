@@ -7,17 +7,17 @@ use App\Domain\Iam\Services\UserDataService;
 use App\Models\Session;
 use App\Models\User;
 use App\Services\JWTTokenService;
+use App\Services\Sso\SsoClientService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 class SSOController extends Controller
 {
     public function __construct(
         private JWTTokenService $jwtService,
-        private UserDataService $userDataService
+        private UserDataService $userDataService,
+        private SsoClientService $ssoClientService
     ) {}
 
     /**
@@ -35,17 +35,15 @@ class SSOController extends Controller
             'state' => 'nullable|string',
         ]);
 
-        // Validasi aplikasi
         try {
-            $application = Application::findByKey($request->app_key);
-        } catch (\Exception $e) {
+            $application = $this->ssoClientService->findApplication($request->app_key);
+        } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'invalid_client',
                 'error_description' => 'Application not found',
             ], 404);
         }
 
-        // Validasi enabled
         if (! $application->enabled) {
             return response()->json([
                 'error' => 'unauthorized_client',
@@ -53,7 +51,6 @@ class SSOController extends Controller
             ], 403);
         }
 
-        // Validasi redirect_uri
         if (! $application->isValidRedirectUri($request->redirect_uri)) {
             return response()->json([
                 'error' => 'invalid_request',
@@ -61,16 +58,16 @@ class SSOController extends Controller
             ], 400);
         }
 
-        // Jika user belum login, redirect ke login dengan return URL
         if (! Auth::check()) {
             return redirect()->route('login')->with([
                 'sso_return' => $request->fullUrl(),
             ]);
         }
 
-        // Cegah user nonaktif / tersuspend mengakses client
-        if (Auth::user()->status !== 'active') {
-            $reason = Auth::user()->status === 'suspended'
+        $user = Auth::user();
+
+        if ($user->status !== 'active') {
+            $reason = $user->status === 'suspended'
                 ? 'Akun Anda telah ditangguhkan oleh administrator.'
                 : 'Akun Anda sedang dinonaktifkan oleh administrator.';
 
@@ -79,19 +76,13 @@ class SSOController extends Controller
                 ->with('inactive_reason', $reason);
         }
 
-        // Generate authorization code
-        $authCode = Str::random(64);
-        $codeData = [
-            'user_id' => Auth::id(),
-            'app_key' => $application->app_key,
-            'redirect_uri' => $request->redirect_uri,
-            'session_id' => $request->session()->getId(),
-        ];
+        $authCode = $this->ssoClientService->issueAuthorizationCode(
+            $user,
+            $application,
+            $request->redirect_uri,
+            $request->session()->getId()
+        );
 
-        // Store code in cache (5 minutes TTL)
-        Cache::put("auth_code:{$authCode}", $codeData, 300);
-
-        // Redirect ke aplikasi dengan code dan state
         $query = http_build_query([
             'code' => $authCode,
             'state' => $request->state,
@@ -115,18 +106,16 @@ class SSOController extends Controller
             'app_secret' => 'required|string',
         ]);
 
-        // Validasi aplikasi
         try {
-            $application = Application::findByKey($request->app_key);
-        } catch (\Exception $e) {
+            $application = $this->ssoClientService->findApplication($request->app_key);
+        } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'invalid_client',
                 'error_description' => 'Application not found',
             ], 404);
         }
 
-        // Validasi app_secret
-        if (! $application->verifySecret($request->app_secret)) {
+        if (! $this->ssoClientService->verifySecret($application, $request->app_secret)) {
             return response()->json([
                 'error' => 'invalid_client',
                 'error_description' => 'Invalid application credentials',
@@ -160,8 +149,7 @@ class SSOController extends Controller
             'redirect_uri' => 'required|url',
         ]);
 
-        // Get code data from cache
-        $codeData = Cache::get("auth_code:{$request->code}");
+        $codeData = $this->ssoClientService->consumeAuthorizationCode($request->code);
 
         if (! $codeData) {
             return response()->json([
@@ -170,7 +158,6 @@ class SSOController extends Controller
             ], 400);
         }
 
-        // Validasi redirect_uri
         if ($codeData['redirect_uri'] !== $request->redirect_uri) {
             return response()->json([
                 'error' => 'invalid_grant',
@@ -178,7 +165,6 @@ class SSOController extends Controller
             ], 400);
         }
 
-        // Validasi app_key
         if ($codeData['app_key'] !== $application->app_key) {
             return response()->json([
                 'error' => 'invalid_grant',
@@ -186,13 +172,8 @@ class SSOController extends Controller
             ], 400);
         }
 
-        // Delete code (one-time use)
-        Cache::forget("auth_code:{$request->code}");
-
-        // Get user
         $user = User::findOrFail($codeData['user_id']);
 
-        // Deny token issuance if the original login session is no longer active.
         if (empty($codeData['session_id']) || ! Session::where('id', $codeData['session_id'])->where('is_active', true)->exists()) {
             return response()->json([
                 'error' => 'invalid_grant',
@@ -200,7 +181,6 @@ class SSOController extends Controller
             ], 400);
         }
 
-        // Akses ketat: user harus punya access profile aktif dengan role di app target.
         if (! $user->hasActiveAccessProfileForApp($application)) {
             return response()->json([
                 'error' => 'access_denied',
@@ -304,17 +284,15 @@ class SSOController extends Controller
             'app_secret' => 'required|string',
         ]);
 
-        // Validasi aplikasi
         try {
-            $application = Application::findByKey($request->app_key);
-        } catch (\Exception $e) {
+            $application = $this->ssoClientService->findApplication($request->app_key);
+        } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'invalid_client',
             ], 404);
         }
 
-        // Validasi app_secret
-        if (! $application->verifySecret($request->app_secret)) {
+        if (! $this->ssoClientService->verifySecret($application, $request->app_secret)) {
             return response()->json([
                 'error' => 'invalid_client',
             ], 401);
@@ -349,15 +327,13 @@ class SSOController extends Controller
             'app_secret' => 'required|string',
         ]);
 
-        // Validasi aplikasi
         try {
-            $application = Application::findByKey($request->app_key);
-        } catch (\Exception $e) {
+            $application = $this->ssoClientService->findApplication($request->app_key);
+        } catch (\Throwable $e) {
             return response()->json(['active' => false]);
         }
 
-        // Validasi app_secret
-        if (! $application->verifySecret($request->app_secret)) {
+        if (! $this->ssoClientService->verifySecret($application, $request->app_secret)) {
             return response()->json(['active' => false]);
         }
 
@@ -418,10 +394,9 @@ class SSOController extends Controller
             ], 400);
         }
 
-        // Get application
         try {
-            $application = Application::findByKey($ssoPayload['app']);
-        } catch (\Exception $e) {
+            $application = $this->ssoClientService->findApplication($ssoPayload['app']);
+        } catch (\Throwable $e) {
             return response()->json([
                 'error' => 'invalid_request',
                 'error_description' => 'Application not found',

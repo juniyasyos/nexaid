@@ -4,22 +4,24 @@ namespace App\Filament\Panel\Resources\Settings\Pages;
 
 use App\Filament\Panel\Resources\Settings\SettingResource;
 use App\Services\SettingService;
-use Filament\Forms\Components\Radio;
 use Filament\Forms\Components\ToggleButtons;
 use Filament\Notifications\Notification;
 use Filament\Resources\Pages\Page;
-use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
-use Illuminate\Support\Facades\Storage;
-use Throwable;
 
 class UiSettings extends Page
 {
-    private const LOGIN_VIEW_IMAGES = [
+    private const LOGIN_VIEW_IMAGES_S3 = [
         'default' => 'login-page/default.jpeg',
         'type1' => 'login-page/login-type-1.jpeg',
         'type2' => 'login-page/login-type-2.jpeg',
+    ];
+
+    private const LOGIN_VIEW_IMAGES_LOCAL = [
+        'default' => 'images/login-page/default.jpeg',
+        'type1' => 'images/login-page/login-type-1.jpeg',
+        'type2' => 'images/login-page/login-type-2.jpeg',
     ];
 
     protected static string $resource = SettingResource::class;
@@ -49,58 +51,54 @@ class UiSettings extends Page
                     ->description('Manage UI login view selection. Only one variant can be active.')
                     ->icon('heroicon-o-computer-desktop')
                     ->schema([
-                    ((function () {
-                        $imgClass = '\\Alkoumi\\FilamentImageRadioButton\\Forms\\Components\\ImageRadioGroup';
+                        ((function () {
+                            $imgClass = '\\Alkoumi\\FilamentImageRadioButton\\Forms\\Components\\ImageRadioGroup';
+                            $loginViewImages = $this->getLoginViewImages();
 
-                        if (class_exists($imgClass)) {
-                            $imageDisk = $this->resolveLoginViewImageDisk();
+                            if (class_exists($imgClass)) {
+                                $imageDisk = $this->resolveLoginViewImageDisk();
 
-                            return $imgClass::make('login_view')
+                                return $imgClass::make('login_view')
+                                    ->label('')
+                                    ->disk($imageDisk)
+                                    ->options($loginViewImages)
+                                    ->gridColumns(2)
+                                    ->required();
+                            }
+
+                            return ToggleButtons::make('login_view')
                                 ->label('')
-                                ->disk($imageDisk)
-                                ->options(self::LOGIN_VIEW_IMAGES)
-                                ->gridColumns(2)
+                                ->options([
+                                    'default' => 'Default',
+                                    'type1' => 'Type 1',
+                                    'type2' => 'Type 2',
+                                ])
+                                ->inline()
                                 ->required();
-                        }
-
-                        return ToggleButtons::make('login_view')
-                            ->label('')
-                            ->options([
-                                'default' => 'Default',
-                                'type1' => 'Type 1',
-                                'type2' => 'Type 2',
-                            ])
-                            ->inline()
-                            ->required();
-                    })()),
+                        })()),
                     ])
             ]);
     }
 
     private function resolveLoginViewImageDisk(): string
     {
-        if ($this->allLoginViewImagesExistOnDisk('s3')) {
+        if ($this->usesS3LoginViewImages()) {
             return 's3';
         }
 
-        return 's3';
+        return (string) (config('filament.default_filesystem_disk') ?: config('filesystems.default', 'local') ?: 'local');
     }
 
-    private function allLoginViewImagesExistOnDisk(string $disk): bool
+    private function usesS3LoginViewImages(): bool
     {
-        try {
-            $filesystem = Storage::disk($disk);
+        return config('filesystems.default', 'local') === 's3';
+    }
 
-            foreach (self::LOGIN_VIEW_IMAGES as $path) {
-                if (! $filesystem->exists($path)) {
-                    return false;
-                }
-            }
-
-            return true;
-        } catch (Throwable) {
-            return false;
-        }
+    private function getLoginViewImages(): array
+    {
+        return $this->usesS3LoginViewImages()
+            ? self::LOGIN_VIEW_IMAGES_S3
+            : self::LOGIN_VIEW_IMAGES_LOCAL;
     }
 
     public function save(): void
