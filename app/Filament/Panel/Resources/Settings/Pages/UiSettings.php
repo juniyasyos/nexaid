@@ -91,7 +91,12 @@ class UiSettings extends Page
 
     private function usesS3LoginViewImages(): bool
     {
-        return config('filesystems.default', 'local') === 's3';
+        if( config('app.env') == 'local' )
+        {
+            return false;
+        }
+
+        return true;
     }
 
     private function getLoginViewImages(): array
