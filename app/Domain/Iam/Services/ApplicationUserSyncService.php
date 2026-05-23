@@ -557,7 +557,7 @@ class ApplicationUserSyncService
                 // legacy hmac signature on empty body.
                 // Prefer global SSO secret from IAM config (iam.sso_secret).
                 // Fall back to legacy sso.secret/env, then per-application secret hash.
-                $secret = setting('iam.sso_secret', setting('sso.secret', env('SSO_SECRET', '')));
+                $secret = config('iam.sso_secret', config('sso.secret', env('SSO_SECRET', '')));
                 if (empty($secret)) {
                     $secret = $application->secret;
                 }
@@ -822,7 +822,7 @@ class ApplicationUserSyncService
                     ->withBody($jsonBody, 'application/json')
                     ->post($syncUrl);
             } else {
-                $secret = setting('iam.sso_secret', setting('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
+                $secret = config('iam.sso_secret', config('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
 
                 // Decode base64-encoded secrets (Laravel convention: base64:xxxxx)
                 if (is_string($secret) && str_starts_with($secret, 'base64:')) {

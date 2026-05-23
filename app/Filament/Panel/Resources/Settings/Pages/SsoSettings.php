@@ -24,7 +24,6 @@ class SsoSettings extends Page
     {
         $this->data = [
             'sso_issuer' => $settingService->get('sso.issuer', env('SSO_ISSUER', env('APP_URL', 'iam-server'))),
-            'sso_secret' => $settingService->get('sso.secret', env('SSO_SECRET', env('APP_KEY'))),
             'sso_ttl' => $settingService->get('sso.ttl', 300),
             'sso_backchannel_signature_header' => $settingService->get('sso.backchannel.signature_header', 'IAM-Signature'),
         ];
@@ -39,17 +38,12 @@ class SsoSettings extends Page
             ->columns(1)
             ->components([
                 Section::make('SSO Core')
-                    ->description('Atur issuer, secret, TTL token, dan header verifikasi SSO.')
+                    ->description('Atur issuer, TTL token, dan header verifikasi SSO.')
                     ->columns(2)
                     ->schema([
                         TextInput::make('sso_issuer')
                             ->label('Issuer')
                             ->required()
-                            ->maxLength(255)
-                            ->columnSpanFull(),
-                        TextInput::make('sso_secret')
-                            ->label('Secret')
-                            ->password()
                             ->maxLength(255)
                             ->columnSpanFull(),
                         TextInput::make('sso_ttl')
@@ -68,7 +62,6 @@ class SsoSettings extends Page
         $state = $this->form->getState();
 
         $settingService->set('sso.issuer', $state['sso_issuer'] ?? null);
-        $settingService->set('sso.secret', $state['sso_secret'] ?? null);
         $settingService->set('sso.ttl', $state['sso_ttl'] ?? null);
         $settingService->set('sso.backchannel.signature_header', $state['sso_backchannel_signature_header'] ?? null);
 
@@ -87,7 +80,7 @@ class SsoSettings extends Page
         return [
             'eyebrow' => 'Settings',
             'pageHeading' => 'SSO Settings',
-            'pageDescription' => 'Kelola issuer, secret, TTL token, dan header verifikasi untuk SSO.',
+            'pageDescription' => 'Kelola issuer, TTL token, dan header verifikasi untuk SSO.',
             'submitLabel' => 'Save SSO Values',
             'hasFields' => true,
         ];

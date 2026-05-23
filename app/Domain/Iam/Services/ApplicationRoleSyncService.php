@@ -109,7 +109,7 @@ class ApplicationRoleSyncService
                     ->timeout(50)
                     ->get($syncUrl);
             } else {
-                $secret = setting('iam.sso_secret', setting('sso.secret', env('SSO_SECRET', '')));
+                $secret = config('iam.sso_secret', config('sso.secret', env('SSO_SECRET', '')));
 
                 // Decode base64-encoded secrets (Laravel convention: base64:xxxxx)
                 if (is_string($secret) && str_starts_with($secret, 'base64:')) {
@@ -192,7 +192,7 @@ class ApplicationRoleSyncService
                 // Prefer global SSO secret from IAM settings (from iam.php),
                 // fallback to old sso.secret + env (backward compatibility),
                 // then fallback to per-app secret hash.
-                $secret = setting('iam.sso_secret', setting('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
+                $secret = config('iam.sso_secret', config('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
 
                 // Decode base64-encoded secrets (Laravel convention: base64:xxxxx)
                 if (is_string($secret) && str_starts_with($secret, 'base64:')) {

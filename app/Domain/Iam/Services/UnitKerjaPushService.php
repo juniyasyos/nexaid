@@ -239,7 +239,7 @@ class UnitKerjaPushService
 
     protected function resolveBackchannelSecret(Application $application): string
     {
-        $secret = setting('iam.sso_secret', setting('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
+        $secret = config('iam.sso_secret', config('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
 
         if (is_string($secret) && str_starts_with($secret, 'base64:')) {
             $decoded = base64_decode(substr($secret, 7), true);

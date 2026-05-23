@@ -37,9 +37,6 @@ class IamSettings extends Page
             'iam_unit_kerja_delete_soft' => $settingService->get('iam.unit_kerja_delete_soft', false),
             'iam_user_delete_soft' => $settingService->get('iam.user_delete_soft', false),
             'iam_push_deleted_records' => $settingService->get('iam.push_deleted_records', true),
-            'iam_sso_secret' => $settingService->get('iam.sso_secret', env('IAM_SSO_SECRET', env('SSO_SECRET', env('IAM_JWT_SECRET')))),
-            'iam_jwt_secret' => $settingService->get('iam.jwt_secret', env('IAM_JWT_SECRET', env('APP_KEY'))),
-            'iam_signing_key' => $settingService->get('iam.signing_key', env('IAM_SIGNING_KEY', env('IAM_JWT_SECRET'))),
             'iam_backchannel_verify' => $settingService->get('iam.backchannel_verify', true),
             'iam_backchannel_method' => $settingService->get('iam.backchannel_method', 'jwt'),
             'iam_algorithm' => $settingService->get('iam.algorithm', 'HS256'),
@@ -119,18 +116,6 @@ class IamSettings extends Page
                         TextInput::make('iam_audience')
                             ->label('Audience')
                             ->maxLength(255),
-                        TextInput::make('iam_sso_secret')
-                            ->label('SSO Secret')
-                            ->password()
-                            ->columnSpanFull(),
-                        TextInput::make('iam_jwt_secret')
-                            ->label('JWT Secret')
-                            ->password()
-                            ->columnSpanFull(),
-                        TextInput::make('iam_signing_key')
-                            ->label('Signing Key')
-                            ->password()
-                            ->columnSpanFull(),
                         Toggle::make('iam_backchannel_verify')
                             ->label('Backchannel Verify'),
                         Select::make('iam_backchannel_method')
@@ -214,9 +199,6 @@ class IamSettings extends Page
         $settingService->set('iam.unit_kerja_delete_soft', $state['iam_unit_kerja_delete_soft'] ?? null);
         $settingService->set('iam.user_delete_soft', $state['iam_user_delete_soft'] ?? null);
         $settingService->set('iam.push_deleted_records', $state['iam_push_deleted_records'] ?? null);
-        $settingService->set('iam.sso_secret', $state['iam_sso_secret'] ?? null);
-        $settingService->set('iam.jwt_secret', $state['iam_jwt_secret'] ?? null);
-        $settingService->set('iam.signing_key', $state['iam_signing_key'] ?? null);
         $settingService->set('iam.backchannel_verify', $state['iam_backchannel_verify'] ?? null);
         $settingService->set('iam.backchannel_method', $state['iam_backchannel_method'] ?? null);
         $settingService->set('iam.algorithm', $state['iam_algorithm'] ?? null);
