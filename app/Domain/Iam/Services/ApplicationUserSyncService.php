@@ -227,12 +227,12 @@ class ApplicationUserSyncService
             $payload = ['users' => $users];
             $jsonBody = json_encode($payload);
 
-            if (! setting('iam.backchannel_verify', true)) {
+            if (! config('iam.backchannel_verify', true)) {
                 $response = Http::timeout(50)
                     ->withHeaders(['Content-Type' => 'application/json'])
                     ->withBody($jsonBody, 'application/json')
                     ->post($syncUrl);
-            } elseif (setting('iam.backchannel_method', 'jwt') === 'jwt') {
+            } elseif (config('iam.backchannel_method', 'jwt') === 'jwt') {
                 $token = app(JWTTokenService::class)->generateBackchannelToken($application);
                 $response = Http::withToken($token)
                     ->timeout(50)
@@ -240,7 +240,7 @@ class ApplicationUserSyncService
                     ->withBody($jsonBody, 'application/json')
                     ->post($syncUrl);
             } else {
-                $secret = setting('iam.sso_secret', setting('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
+                $secret = config('iam.sso_secret', config('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
                 if (is_string($secret) && str_starts_with($secret, 'base64:')) {
                     $decoded = base64_decode(substr($secret, 7), true);
                     $secret = $decoded !== false ? $decoded : $secret;
@@ -398,9 +398,9 @@ class ApplicationUserSyncService
             ]);
 
             // if verification is disabled we don't send any auth headers
-            if (! setting('iam.backchannel_verify', true)) {
+            if (! config('iam.backchannel_verify', true)) {
                 $response = Http::timeout(10)->get($syncUrl);
-            } elseif (setting('iam.backchannel_method', 'jwt') === 'jwt') {
+            } elseif (config('iam.backchannel_method', 'jwt') === 'jwt') {
                 $token = app(JWTTokenService::class)->generateBackchannelToken($application);
                 $response = Http::withToken($token)
                     ->timeout(10)
@@ -661,12 +661,12 @@ class ApplicationUserSyncService
 
             $jsonBody = json_encode($payload);
 
-            if (! setting('iam.backchannel_verify', true)) {
+            if (! config('iam.backchannel_verify', true)) {
                 $response = Http::timeout(50)
                     ->withHeaders(['Content-Type' => 'application/json'])
                     ->withBody($jsonBody, 'application/json')
                     ->post($syncUrl);
-            } elseif (setting('iam.backchannel_method', 'jwt') === 'jwt') {
+            } elseif (config('iam.backchannel_method', 'jwt') === 'jwt') {
                 $token = app(JWTTokenService::class)->generateBackchannelToken($application);
                 $response = Http::withToken($token)
                     ->timeout(50)

@@ -44,12 +44,12 @@ class UnitKerjaPushService
         $jsonBody = json_encode($payload);
 
         try {
-            if (! setting('iam.backchannel_verify', true)) {
+            if (! config('iam.backchannel_verify', true)) {
                 $response = Http::timeout(50)
                     ->withHeaders(['Content-Type' => 'application/json'])
                     ->withBody($jsonBody, 'application/json')
                     ->post($pushUrl);
-            } elseif (setting('iam.backchannel_method', 'jwt') === 'jwt') {
+            } elseif (config('iam.backchannel_method', 'jwt') === 'jwt') {
                 $token = app(JWTTokenService::class)->generateBackchannelToken($application);
                 $response = Http::withToken($token)
                     ->timeout(50)

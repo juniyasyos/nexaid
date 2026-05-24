@@ -45,7 +45,7 @@ class VerifyIAMAccessToken
             }
 
             // Validasi app_key (opsional, set di config)
-            $expectedAppKey = setting('iam.app_key');
+            $expectedAppKey = config('iam.app_key');
             if ($expectedAppKey && (! isset($decoded->app_key) || $decoded->app_key !== $expectedAppKey)) {
                 return response()->json([
                     'error' => 'unauthorized',

@@ -27,7 +27,7 @@ class JWTTokenService
         }
 
         $this->secretKey = $secret;
-        $this->issuer = setting('iam.issuer', config('app.url'));
+        $this->issuer = config('iam.issuer', config('app.url'));
     }
 
     /**

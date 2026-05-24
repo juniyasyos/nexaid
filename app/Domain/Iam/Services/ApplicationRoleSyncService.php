@@ -10,7 +10,7 @@ use App\Services\JWTTokenService;
 class ApplicationRoleSyncService
 {
     /**
-        * Sync IAM roles to the client application.
+     * Sync IAM roles to the client application.
      */
     public function syncRoles(Application $application): array
     {
@@ -35,23 +35,34 @@ class ApplicationRoleSyncService
             $payload = ['roles' => $roles];
             $jsonBody = json_encode($payload);
 
-            if (! setting('iam.backchannel_verify', true)) {
+            if (!config('iam.backchannel_verify', true)) {
                 $response = Http::timeout(50)
                     ->withHeaders(['Content-Type' => 'application/json'])
                     ->withBody($jsonBody, 'application/json')
                     ->post($syncUrl);
-            } elseif (setting('iam.backchannel_method', 'jwt') === 'jwt') {
+            } elseif (config('iam.backchannel_method', 'jwt') === 'jwt') {
                 $token = app(JWTTokenService::class)->generateBackchannelToken($application);
                 $response = Http::withToken($token)
                     ->timeout(50)
                     ->withHeaders(['Content-Type' => 'application/json'])
                     ->withBody($jsonBody, 'application/json')
                     ->post($syncUrl);
+
+                dd([
+                    'token' => $token,
+                    'sync_url' => $syncUrl,
+                    'payload' => $payload,
+                ]);
             } else {
                 // Prefer global SSO secret from IAM settings (from iam.php),
                 // fallback to old sso.secret + env (backward compatibility),
                 // then fallback to per-app secret hash.
                 $secret = config('iam.sso_secret', config('sso.secret', env('SSO_SECRET', ''))) ?: $application->secret;
+
+                dd('test masuk 2', [
+                    'secret_source' => $secret ? 'config/iam.php or config/sso.php or env' : 'application secret',
+                    'secret_length' => is_string($secret) ? strlen($secret) : 'not a string',
+                ]);
 
                 // Decode base64-encoded secrets (Laravel convention: base64:xxxxx)
                 if (is_string($secret) && str_starts_with($secret, 'base64:')) {
@@ -72,7 +83,7 @@ class ApplicationRoleSyncService
                     ->post($syncUrl);
             }
 
-            if (! $response->successful()) {
+            if (!$response->successful()) {
                 return [
                     'success' => false,
                     'error' => "Client returned status {$response->status()}",
@@ -105,7 +116,7 @@ class ApplicationRoleSyncService
     {
         $base = $this->getBackchannelUrl($application);
 
-        if (! $base) {
+        if (!$base) {
             throw new \InvalidArgumentException('Application has no callback/backchannel URL configured for sync.');
         }
 
@@ -137,7 +148,7 @@ class ApplicationRoleSyncService
         // Prefer explicit backchannel URL if configured.
         $backchannel = $application->backchannel_url ?: $application->callback_url;
 
-        if (! $backchannel) {
+        if (!$backchannel) {
             return null;
         }
 
@@ -149,7 +160,7 @@ class ApplicationRoleSyncService
 
         $base = $parsed['scheme'] . '://' . $parsed['host'];
 
-        if (! empty($parsed['port'])) {
+        if (!empty($parsed['port'])) {
             $base .= ':' . $parsed['port'];
         }
 
@@ -163,7 +174,7 @@ class ApplicationRoleSyncService
     {
         $base = $this->getBackchannelUrl($application);
 
-        if (! $base) {
+        if (!$base) {
             throw new \InvalidArgumentException('Application has no callback/backchannel URL configured for sync.');
         }
 

@@ -18,7 +18,7 @@ class TokenBuilder
     public function __construct(
         private readonly UserRoleAssignmentService $userRoleService
     ) {
-        $secret = setting('iam.signing_key', config('app.key'));
+        $secret = config('iam.signing_key', config('app.key'));
 
         // Decode base64-encoded secrets (Laravel convention: base64:xxxxx)
         // Must match TokenValidator decoding logic for signature consistency
@@ -41,7 +41,7 @@ class TokenBuilder
         $rolesByApp = $this->userRoleService->getRolesByAppForUser($user);
 
         $now = time();
-        $ttl = setting('iam.token_ttl', 3600);
+        $ttl = config('iam.token_ttl', 3600);
 
         return new TokenClaims(
             userId: $user->id,
@@ -50,7 +50,7 @@ class TokenBuilder
             name: $user->name,
             apps: $apps,
             rolesByApp: $rolesByApp,
-            issuer: setting('iam.issuer', config('app.url')),
+            issuer: config('iam.issuer', config('app.url')),
             issuedAt: $now,
             expiresAt: $now + $ttl,
             unit: $user->unit,

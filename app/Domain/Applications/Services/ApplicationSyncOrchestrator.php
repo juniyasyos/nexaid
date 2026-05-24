@@ -38,10 +38,6 @@ class ApplicationSyncOrchestrator
         $service = new ApplicationRoleSyncService();
         $result = $service->syncRoles($application);
 
-        dd([
-            "result" => $result,
-        ]);
-
         if (!$result['success']) {
             return [
                 'success' => false,

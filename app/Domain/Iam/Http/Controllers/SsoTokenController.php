@@ -142,7 +142,7 @@ class SsoTokenController extends Controller
                 'user_id' => $user->id,
                 'client_id' => $application->app_key,
                 'redirect_uri' => $request->redirect_uri,
-            ], setting('iam.auth_code_ttl', 300));
+            ], config('iam.auth_code_ttl', 300));
 
             // Build redirect URL
             $redirectUrl = $request->redirect_uri . '?code=' . $code;
