@@ -5,6 +5,8 @@ namespace App\Filament\Panel\Resources\Applications\Schemas;
 use App\Domain\Iam\Models\Application;
 use Filament\Actions\Action;
 use Filament\Forms\Components\Select;
+use Filament\Infolists\Components\TextEntry;
+use Filament\Schemas\Components\Fieldset;
 use Filament\Schemas\Components\Grid;
 use Filament\Forms\Components\TagsInput;
 use Filament\Forms\Components\Textarea;
@@ -29,14 +31,14 @@ class ApplicationForm
                         Section::make('Application Identity')
                             ->description('Identitas utama aplikasi yang digunakan oleh gateway SSO / IAM.')
                             ->schema([
-                                Grid::make(2)->schema([
+                                Grid::make(4)->schema([
                                     TextInput::make('name')
                                         ->label('Application Name')
                                         ->required()
                                         ->maxLength(255)
                                         ->placeholder('SIIMUT, Incident Reporter, Virtual Library, dst.')
                                         ->live(onBlur: true)
-                                        ->columnSpanFull()
+                                        ->columnSpan(3)
                                         ->afterStateUpdated(function (string $operation, $state, Set $set, Get $get): void {
                                             // Auto-generate app_key saat create jika belum diisi manual.
                                             if ($operation !== 'create') {
@@ -50,6 +52,36 @@ class ApplicationForm
                                             $set('app_key', Str::slug((string) $state, '_'));
                                         }),
 
+                                    TextInput::make('app_key')
+                                        ->label('App Key')
+                                        ->required()
+                                        ->columnSpan(1)
+                                        ->maxLength(64)
+                                        ->unique(
+                                            table: Application::class,
+                                            column: 'app_key',
+                                            ignoreRecord: true,
+                                        )
+                                        ->dehydrateStateUsing(fn(string $state): string => Str::lower($state))
+                                        ->rules(['regex:/^[a-z0-9\-_]+$/'])
+                                        ->helperText('Lowercase, URL-safe, unik. Contoh: siimut_portal, incident_report.')
+                                        ->prefixIcon('heroicon-m-finger-print')
+                                        ->copyable()
+                                        ->columnSpan(1)
+                                        ->suffixAction(
+                                            Action::make('generateAppKey')
+                                                ->icon('heroicon-m-sparkles')
+                                                ->tooltip('Generate app key dari nama aplikasi')
+                                                ->action(function (Set $set, Get $get): void {
+                                                    $name = (string) $get('name');
+
+                                                    $set('app_key', Str::slug(
+                                                        $name !== '' ? $name : Str::random(8),
+                                                        '_',
+                                                    ));
+                                                })
+                                        ),
+
 
                                     Textarea::make('description')
                                         ->label('Description')
@@ -58,38 +90,6 @@ class ApplicationForm
                                         ->placeholder('Deskripsikan tujuan, owner, dan batasan akses aplikasi ini...')
                                         ->helperText('Contoh: Aplikasi untuk pelaporan indikator mutu RS Citra Husada, hanya untuk internal quality team.')
                                         ->columnSpanFull(),
-
-                                    Grid::make(2)->schema([
-                                        TextInput::make('app_key')
-                                            ->label('App Key')
-                                            ->required()
-                                            ->maxLength(64)
-                                            ->unique(
-                                                table: Application::class,
-                                                column: 'app_key',
-                                                ignoreRecord: true,
-                                            )
-                                            ->dehydrateStateUsing(fn(string $state): string => Str::lower($state))
-                                            ->rules(['regex:/^[a-z0-9\-_]+$/'])
-                                            ->helperText('Lowercase, URL-safe, unik. Contoh: siimut_portal, incident_report.')
-                                            ->prefixIcon('heroicon-m-finger-print')
-                                            ->copyable()
-                                            ->columnSpan(1)
-                                            ->suffixAction(
-                                                Action::make('generateAppKey')
-                                                    ->icon('heroicon-m-sparkles')
-                                                    ->tooltip('Generate app key dari nama aplikasi')
-                                                    ->action(function (Set $set, Get $get): void {
-                                                        $name = (string) $get('name');
-
-                                                        $set('app_key', Str::slug(
-                                                            $name !== '' ? $name : Str::random(8),
-                                                            '_',
-                                                        ));
-                                                    })
-                                            ),
-
-                                    ]),
 
                                     ToggleButtons::make('enabled')
                                         ->label('Aplikasi Bisa Diakses?')
@@ -106,7 +106,7 @@ class ApplicationForm
                                             0 => 'heroicon-m-x-circle',
                                         ])
                                         ->inline()
-                                        ->columnSpan(1)
+                                        ->columnSpanFull()
                                         ->default(1)
                                         ->helperText('Tentukan apakah aplikasi ini aktif dan bisa diakses oleh pengguna. Nonaktifkan jika maintenance.'),
 
@@ -114,36 +114,68 @@ class ApplicationForm
                             ]),
 
                         Section::make('Integration & Routing')
-                            ->description('Konfigurasi endpoint yang digunakan saat proses login / callback.')
+                            ->description('Konfigurasi endpoint dan routing yang digunakan selama proses autentikasi SSO.')
+                            ->icon('heroicon-o-globe-alt')
+                            ->collapsible()
                             ->schema([
-                                TextInput::make('redirect_uris')
-                                    ->label('Redirect URIs')
-                                    ->helperText('Opsional. Tekan Enter untuk menambah banyak redirect URI. Wajib HTTPS untuk produksi.')
-                                    ->placeholder('https://app.example.com/oauth/callback'),
+                                Fieldset::make('Authentication Endpoints')
+                                    ->schema([
+                                        Grid::make('2')
+                                            ->schema([
+                                                TextInput::make('callback_url')
+                                                    ->label('SSO Callback URL')
+                                                    ->required()
+                                                    ->url()
+                                                    ->maxLength(2048)
+                                                    ->placeholder('https://app.example.com/sso/callback')
+                                                    ->prefixIcon('heroicon-m-arrow-path-rounded-square')
+                                                    ->helperText('Primary endpoint that receives authentication assertion or token from the SSO gateway.'),
 
-                                TextInput::make('callback_url')
-                                    ->label('SSO Callback URL')
-                                    ->required()
-                                    ->url()
-                                    ->maxLength(2048)
-                                    ->placeholder('https://app.example.com/sso/callback')
-                                    ->helperText('Endpoint utama yang menerima assertion / token dari SSO gateway.'),
+                                                TextInput::make('backchannel_url')
+                                                    ->label('Backchannel Base URL')
+                                                    ->url()
+                                                    ->maxLength(2048)
+                                                    ->nullable()
+                                                    ->placeholder('http://web:8000')
+                                                    ->prefixIcon('heroicon-m-server-stack')
+                                                    ->helperText('Optional internal service URL used for backend-to-backend sync, validation, or logout process.'),
+                                            ])
+                                            ->columnSpanFull()
+                                    ]),
 
-                                TextInput::make('backchannel_url')
-                                    ->label('Backchannel Base URL')
-                                    ->url()
-                                    ->maxLength(2048)
-                                    ->nullable()
-                                    ->placeholder('http://web:8000')
-                                    ->helperText('Opsional: gunakan internal service hostname untuk sync/verify/logout backend-to-backend (misal: container alias). Jika kosong, callback_url digunakan.'),
+                                Fieldset::make('Application Routing')
+                                    ->columnSpanFull()
+                                    ->schema([
+                                        TextInput::make('redirect_uris')
+                                            ->label('Redirect URIs')
+                                            ->placeholder('https://app.example.com/oauth/callback')
+                                            ->prefixIcon('heroicon-m-link')
+                                            ->helperText('Optional. Press Enter to add multiple redirect URIs. HTTPS is strongly recommended for production environments.')
+                                            ->columnSpanFull(),
+                                    ]),
 
-                                TextInput::make('logo_url')
-                                    ->label('Logo URL')
-                                    ->url()
-                                    ->maxLength(255)
-                                    ->nullable()
-                                    ->placeholder('https://cdn.example.com/apps/siimut-logo.svg')
-                                    ->helperText('Digunakan untuk menampilkan logo aplikasi di portal SSO.'),
+                                Fieldset::make('Branding')
+                                    ->schema([
+                                        Grid::make([
+                                            'default' => 1,
+                                            'md' => 2,
+                                        ])
+                                            ->columnSpanFull()
+                                            ->schema([
+                                                TextInput::make('logo_url')
+                                                    ->label('Logo URL')
+                                                    ->url()
+                                                    ->maxLength(255)
+                                                    ->nullable()
+                                                    ->placeholder('https://cdn.example.com/apps/siimut-logo.svg')
+                                                    ->prefixIcon('heroicon-m-photo')
+                                                    ->helperText('Displayed in the SSO portal and application picker.'),
+
+                                                TextEntry::make('branding_note')
+                                                    ->label('Display Recommendation')
+                                                    ->state('Gunakan logo SVG atau PNG transparan dengan ukuran konsisten agar tampilan portal SSO tetap rapi dan profesional.'),
+                                            ]),
+                                    ]),
                             ]),
 
                         Section::make('Security & Credentials')
