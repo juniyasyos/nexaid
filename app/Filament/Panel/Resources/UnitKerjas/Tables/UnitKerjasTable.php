@@ -21,6 +21,7 @@ use Guava\FilamentModalRelationManagers\Actions\RelationManagerAction;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 class UnitKerjasTable
 {
@@ -29,7 +30,7 @@ class UnitKerjasTable
         return [
             TextColumn::make('unit_name')
                 ->label(__('filament-forms::unit-kerja.fields.unit_name'))
-                ->description(fn(UnitKerja $record) => $record->description)
+                ->description(fn(UnitKerja $record) => Str::limit($record->description, 100))
                 ->wrap()
                 ->grow()
                 ->weight(FontWeight::Bold)
@@ -59,26 +60,39 @@ class UnitKerjasTable
                 EditAction::make('edit')
                     ->label('Edit')
                     ->tooltip('Edit')
-                    ->visible(fn($record) => UnitKerjaResource::isCrudAllowed() && method_exists($record, 'trashed') && ! $record->trashed())
+                    ->visible(fn($record) => UnitKerjaResource::isCrudAllowed() && method_exists($record, 'trashed') && !$record->trashed())
                     ->icon('heroicon-o-pencil-square'),
 
                 RestoreAction::make('restore')
                     ->visible(
-                        fn($record) => UnitKerjaResource::isCrudAllowed() &&
-                            Gate::allows('restore', $record) &&
-                            method_exists($record, 'trashed') &&
-                            $record->trashed()
+                        function ($record): bool {
+                            static $canRestore = null;
+
+                            $canRestore ??= UnitKerjaResource::isCrudAllowed() && Gate::allows('restore', UnitKerja::class);
+
+                            return $canRestore
+                                && method_exists($record, 'trashed')
+                                && $record->trashed();
+                        }
                     ),
 
                 ForceDeleteAction::make('forceDelete')
                     ->requiresConfirmation()
                     ->visible(
-                        fn($record) => UnitKerjaResource::isCrudAllowed() &&
-                            Gate::allows('forceDelete', $record) &&
-                            method_exists($record, 'trashed') &&
-                            $record->trashed()
+                        function ($record): bool {
+                            static $canForceDelete = null;
+
+                            $canForceDelete ??= UnitKerjaResource::isCrudAllowed() && Gate::allows('forceDelete', UnitKerja::class);
+
+                            return $canForceDelete
+                                && method_exists($record, 'trashed')
+                                && $record->trashed();
+                        }
                     ),
-            ]),
+            ])
+                ->button()
+                ->icon('heroicon-o-ellipsis-vertical')
+                ->color('primary'),
         ];
     }
 

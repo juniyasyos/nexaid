@@ -71,7 +71,7 @@ class UnitKerjaResource extends Resource
 
     public static function isCrudAllowed(): bool
     {
-        return (bool) setting('iam.sync_unit_kerja', true);
+        return (bool) config('settings.definitions.iam.sync_unit_kerja.default', true);
     }
 
     public static function form(Schema $schema): Schema
@@ -83,8 +83,8 @@ class UnitKerjaResource extends Resource
     {
         return $table
             ->heading('Kelola Unit Kerja')
-            ->defaultSort('updated_at', 'desc')
-            ->poll('2s')
+            ->defaultSort('id', 'esc')
+            ->poll('60s')
             ->defaultPaginationPageOption(25)
             ->striped()
             ->persistFiltersInSession()

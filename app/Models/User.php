@@ -324,11 +324,13 @@ class User extends Authenticatable
     {
         Cache::forget("user.roles_by_app.{$this->id}");
         Cache::forget("user.accessible_apps.{$this->id}");
+        $this->cachedIsIamAdmin = null;
     }
 
     // Cache for session data to avoid repeated DB queries in the same request
     protected ?\stdClass $cachedLatestSession = null;
     protected bool $sessionCacheInitialized = false;
+    protected ?bool $cachedIsIamAdmin = null;
 
     public function hasActiveSession(): bool
     {
@@ -479,9 +481,13 @@ class User extends Authenticatable
      */
     public function isIAMAdmin(): bool
     {
+        if ($this->cachedIsIamAdmin !== null) {
+            return $this->cachedIsIamAdmin;
+        }
+
         // Akses special: user 0000.00000 adalah IAM admin seumur hidup.
         if ($this->nip === '0000.00000') {
-            return true;
+            return $this->cachedIsIamAdmin = true;
         }
 
         // Check direct admin role
@@ -495,12 +501,12 @@ class User extends Authenticatable
             ->exists();
 
         if ($hasDirectAdmin) {
-            return true;
+            return $this->cachedIsIamAdmin = true;
         }
 
         // Check admin role via ACTIVE access profiles only
         // SECURITY FIX: Added validation for is_active = true
-        return \App\Domain\Iam\Models\ApplicationRole::query()
+        return $this->cachedIsIamAdmin = \App\Domain\Iam\Models\ApplicationRole::query()
             ->where('slug', 'admin')
             ->whereIn('id', function ($query) {
                 $query->select('role_id')

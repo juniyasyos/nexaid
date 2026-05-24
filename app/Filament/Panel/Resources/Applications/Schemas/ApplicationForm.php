@@ -38,7 +38,7 @@ class ApplicationForm
                                         ->maxLength(255)
                                         ->placeholder('SIIMUT, Incident Reporter, Virtual Library, dst.')
                                         ->live(onBlur: true)
-                                        ->columnSpan(3)
+                                        ->columnSpan(2)
                                         ->afterStateUpdated(function (string $operation, $state, Set $set, Get $get): void {
                                             // Auto-generate app_key saat create jika belum diisi manual.
                                             if ($operation !== 'create') {
@@ -55,7 +55,7 @@ class ApplicationForm
                                     TextInput::make('app_key')
                                         ->label('App Key')
                                         ->required()
-                                        ->columnSpan(1)
+                                        ->columnSpan(2)
                                         ->maxLength(64)
                                         ->unique(
                                             table: Application::class,
@@ -91,24 +91,18 @@ class ApplicationForm
                                         ->helperText('Contoh: Aplikasi untuk pelaporan indikator mutu RS Citra Husada, hanya untuk internal quality team.')
                                         ->columnSpanFull(),
 
-                                    ToggleButtons::make('enabled')
-                                        ->label('Aplikasi Bisa Diakses?')
-                                        ->options([
-                                            1 => 'Aktif',
-                                            0 => 'Nonaktif',
-                                        ])
-                                        ->colors([
-                                            1 => 'success', // hijau
-                                            0 => 'danger',  // merah
-                                        ])
-                                        ->icons([
-                                            1 => 'heroicon-m-check-circle',
-                                            0 => 'heroicon-m-x-circle',
-                                        ])
-                                        ->inline()
+                                    Grid::make(2)
                                         ->columnSpanFull()
-                                        ->default(1)
-                                        ->helperText('Tentukan apakah aplikasi ini aktif dan bisa diakses oleh pengguna. Nonaktifkan jika maintenance.'),
+                                        ->schema([
+                                            Toggle::make('is_system')
+                                                ->label('System Bundle')
+                                                ->default(false)
+                                                ->helperText('If enabled, this bundle is considered critical and usually cannot be deleted or modified by regular users.'),
+                                            Toggle::make('is_active')
+                                                ->label('Active')
+                                                ->default(true)
+                                                ->helperText('Disable to prevent new user assignments while keeping existing assignments.'),
+                                        ]),
 
                                 ])->columnSpanFull(),
                             ]),

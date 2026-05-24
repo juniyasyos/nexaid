@@ -35,12 +35,12 @@ class UnitKerjaPolicy
         return $user->isIAMAdmin();
     }
 
-    public function restore(User $user, UnitKerja $unitKerja): bool
+    public function restore(User $user, ?UnitKerja $unitKerja = null): bool
     {
         return $user->isIAMAdmin();
     }
 
-    public function forceDelete(User $user, UnitKerja $unitKerja): bool
+    public function forceDelete(User $user, ?UnitKerja $unitKerja = null): bool
     {
         return $user->isIAMAdmin();
     }
