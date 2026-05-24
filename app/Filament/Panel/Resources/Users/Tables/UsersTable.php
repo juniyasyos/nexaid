@@ -2,6 +2,9 @@
 
 namespace App\Filament\Panel\Resources\Users\Tables;
 
+use App\Domain\Users\Services\UserSessionStateResolver;
+use App\Domain\Users\Services\UserAccessSummaryFormatter;
+use App\Domain\Users\Services\UserTableFilterBuilder;
 use App\Models\User;
 use Filament\Actions\ActionGroup;
 use Filament\Actions\BulkAction;
@@ -11,6 +14,9 @@ use Filament\Actions\EditAction;
 use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\IconColumn;
+use Filament\Tables\Columns\ImageColumn;
+use Filament\Tables\Columns\Layout\Split;
+use Filament\Tables\Columns\Layout\Stack;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Select;
 use Filament\Tables\Filters\Filter;
@@ -20,13 +26,11 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Filament\Actions\Action;
 use Filament\Notifications\Notification;
-use Illuminate\Support\Carbon;
 use App\Filament\Panel\Resources\Users\RelationManagers\AccessProfilesRelationManager;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Tables\Enums\FiltersLayout;
 use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Storage;
 
 class UsersTable
 {
@@ -44,229 +48,130 @@ class UsersTable
             ->headerActions(self::headerActions())
             ->searchPlaceholder('Cari nama, NIP, atau email pengguna...')
             ->columns([
+                Split::make([
+                    ImageColumn::make('avatar_url')
+                        ->label('')
+                        ->circular()
+                        ->grow(false)
+                        ->getStateUsing(
+                            fn(User $record) => $record->avatar_url
+                            ?: 'https://ui-avatars.com/api/?name=' . urlencode($record->name)
+                        ),
 
-                // Nama + nip + email
-                TextColumn::make('name')
-                    ->label('Pengguna')
-                    ->weight('semibold')
-                    ->description(fn(User $record) => $record->nip)
-                    ->icon('heroicon-m-user-circle')
-                    ->searchable(['name', 'nip', 'email'])
-                    ->sortable()
-                    ->toggleable(),
+                    Stack::make([
+                        TextColumn::make('name')
+                            ->label('Pengguna')
+                            ->weight('semibold')
+                            ->searchable(['name'])
+                            ->sortable(),
 
-                // UNIT KERJA - OPTIMIZED: Use eager loaded relationship
-                TextColumn::make('unit_kerja')
-                    ->label('Unit Kerja')
-                    ->getStateUsing(function (User $record): ?string {
-                        // Uses pre-loaded unitKerjas relationship from eager loading
-                        $unitKerjas = $record->relationLoaded('unitKerjas')
-                            ? $record->unitKerjas->pluck('unit_name')->toArray()
-                            : $record->unitKerjas()->pluck('unit_name')->toArray();
+                        TextColumn::make('nip')
+                            ->label('NIP')
+                            ->icon('heroicon-m-finger-print')
+                            ->color('gray')
+                            ->size('sm')
+                            ->searchable()
+                            ->copyable()
+                            ->copyMessage('NIP berhasil disalin!')
+                            ->copyMessageDuration(1500),
+                    ])
+                        ->space(1)
+                        ->grow(),
 
-                        if (empty($unitKerjas)) {
-                            return null;
-                        }
+                    Stack::make([
+                        TextColumn::make('access_profiles')
+                            ->label('Role Bundle')
+                            ->color('primary')
+                            ->size('sm')
+                            ->formatStateUsing(fn(?string $state) => strtoupper($state ?? '-'))
+                            ->getStateUsing(function (User $record): ?string {
+                                $profiles = $record->relationLoaded('accessProfiles')
+                                    ? $record->accessProfiles->pluck('name')->toArray()
+                                    : $record->accessProfiles()->pluck('name')->toArray();
 
-                        return collect($unitKerjas)->implode(', ');
-                    })
-                    ->weight('semibold')
-                    ->color('slate')
-                    ->tooltip('Unit kerja yang menjadi tempat tugas pengguna.')
-                    ->wrap()
-                    ->placeholder('Belum ada unit kerja')
-                    ->toggleable(),
+                                return empty($profiles)
+                                    ? null
+                                    : collect($profiles)->implode(', ');
+                            }),
 
-                // RINGKASAN IAM (jumlah aplikasi & profil) - OPTIMIZED
-                TextColumn::make('iam_summary')
-                    ->label('Ringkasan IAM')
-                    ->getStateUsing(function (User $record): ?string {
-                        $profilesCount = $record->relationLoaded('accessProfiles')
-                            ? $record->accessProfiles->count()
-                            : $record->accessProfiles()->count();
+                        TextColumn::make('unit_kerja')
+                            ->label('Unit Kerja')
+                            ->icon('heroicon-m-building-office-2')
+                            ->color('gray')
+                            ->size('md')
+                            ->formatStateUsing(fn(?string $state) => strtoupper($state ?? '-'))
+                            ->getStateUsing(function (User $record): ?string {
+                                $unitKerjas = $record->relationLoaded('unitKerjas')
+                                    ? $record->unitKerjas->pluck('unit_name')->toArray()
+                                    : $record->unitKerjas()->pluck('unit_name')->toArray();
 
-                        if ($profilesCount === 0) {
-                            return null;
-                        }
+                                return empty($unitKerjas)
+                                    ? null
+                                    : collect($unitKerjas)->implode(', ');
+                            })
+                            ->tooltip('Unit kerja pengguna.')
+                            ->placeholder('Belum ada unit kerja')
+                            ->wrap(),
+                    ])
+                        ->space(1),
 
-                        // Use accessibleApps() which is cached
-                        $apps = $record->accessibleApps();
+                    Stack::make([
+                        TextColumn::make('iam_summary')
+                            ->label('Ringkasan IAM')
+                            ->size('sm')
+                            ->color('primary')
+                            ->getStateUsing(
+                                fn(User $record) => app(UserAccessSummaryFormatter::class)->format($record)
+                            )
+                            ->tooltip('Ringkasan jumlah aplikasi & profil akses.'),
 
-                        return sprintf('%d aplikasi • %d profil akses', count($apps), $profilesCount);
-                    })
-                    ->badge()
-                    ->color('primary')
-                    ->tooltip('Ringkasan jumlah aplikasi terhubung dan profil akses global pengguna.')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                        TextColumn::make('status')
+                            ->label('Status')
+                            ->badge()
+                            ->sortable()
+                            ->formatStateUsing(fn(?string $state) => strtoupper($state ?? '-'))
+                            ->color(fn(User $record) => match ($record->status) {
+                                'active' => 'success',
+                                'inactive' => 'warning',
+                                'suspended' => 'danger',
+                                default => 'gray',
+                            }),
+                    ])
+                        ->space(1),
 
-                TextColumn::make('status')
-                    ->label('Status Pengguna')
-                    ->badge()
-                    ->color(fn(User $record) => match ($record->status) {
-                        'active' => 'success',
-                        'inactive' => 'warning',
-                        'suspended' => 'danger',
-                        default => 'secondary',
-                    })
-                    ->sortable()
-                    ->alignCenter()
-                    ->toggleable(isToggledHiddenByDefault: true),
+                    Stack::make([
+                        TextColumn::make('session_active')
+                            ->label('Login Aktif')
+                            ->badge()
+                            ->size('sm')
+                            ->color(fn(User $record) => app(UserSessionStateResolver::class)->getStatusColor($record))
+                            ->getStateUsing(fn(User $record) => app(UserSessionStateResolver::class)->getStatus($record))
+                            ->description(fn(User $record) => app(UserSessionStateResolver::class)->getDescription($record))
+                            ->tooltip(fn(User $record) => app(UserSessionStateResolver::class)->getTooltip($record)),
+                    ])
+                        ->space(1),
 
-                TextColumn::make('phone_number')
-                    ->label('Telepon')
-                    ->toggleable(isToggledHiddenByDefault: true)
-                    ->wrap(),
+                    // Stack::make([
+                    //     TextColumn::make('last_login_at')
+                    //         ->label('Login Terakhir')
+                    //         ->icon('heroicon-m-clock')
+                    //         ->color('gray')
+                    //         ->size('sm')
+                    //         ->dateTime('d M Y H:i')
+                    //         ->sortable(),
 
-                // LOGIN AKTIF
-                TextColumn::make('session_active')
-                    ->label('Login Aktif')
-                    ->badge()
-                    ->color(function (User $record) {
-                        // Determine session window using cached session if available,
-                        // otherwise fall back to last_login_at/last_logout_at heuristic.
-                        $now = Carbon::now(config('app.timezone'));
-                        $lifetimeSeconds = config('session.lifetime') * 60;
+                    //     TextColumn::make('last_logout_at')
+                    //         ->label('Logout Terakhir')
+                    //         ->icon('heroicon-m-arrow-left-on-rectangle')
+                    //         ->color('gray')
+                    //         ->size('sm')
+                    //         ->dateTime('d M Y H:i')
+                    //         ->sortable(),
+                    // ])
+                    //     ->space(1),
 
-                        $start = null;
-                        $end = null;
-
-                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
-                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
-                            $end = $start->copy()->addSeconds($lifetimeSeconds);
-                        } elseif ($record->last_login_at !== null) {
-                            // Treat last_login_at as the start if logout is absent or older than login
-                            if ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at)) {
-                                $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
-                                $end = $start->copy()->addSeconds($lifetimeSeconds);
-                            }
-                        }
-
-                        if ($start && $end && $now->between($start, $end)) {
-                            return 'success';
-                        }
-
-                        if ($record->last_login_at === null && $record->last_logout_at === null) {
-                            return 'secondary';
-                        }
-
-                        return 'warning';
-                    })
-                    ->getStateUsing(function (User $record) {
-                        $now = Carbon::now(config('app.timezone'));
-                        $lifetimeSeconds = config('session.lifetime') * 60;
-
-                        $start = null;
-                        $end = null;
-
-                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
-                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
-                            $end = $start->copy()->addSeconds($lifetimeSeconds);
-                        } elseif ($record->last_login_at !== null) {
-                            if ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at)) {
-                                $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
-                                $end = $start->copy()->addSeconds($lifetimeSeconds);
-                            }
-                        }
-
-                        if ($start && $end && $now->between($start, $end)) {
-                            return 'Online';
-                        }
-
-                        if ($record->last_login_at === null && $record->last_logout_at === null) {
-                            return 'Tidak login';
-                        }
-
-                        return 'Offline';
-                    })
-                    ->description(function (User $record) {
-                        $now = Carbon::now(config('app.timezone'));
-                        $lifetimeSeconds = config('session.lifetime') * 60;
-
-                        $start = null;
-                        $end = null;
-
-                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
-                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
-                            $end = $start->copy()->addSeconds($lifetimeSeconds);
-                        } elseif ($record->last_login_at !== null) {
-                            if ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at)) {
-                                $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
-                                $end = $start->copy()->addSeconds($lifetimeSeconds);
-                            }
-                        }
-
-                        if ($start === null || $end === null) {
-                            if ($record->last_login_at === null && $record->last_logout_at === null) {
-                                return 'Pengguna belum pernah login';
-                            }
-
-                            return 'Tidak ada sesi login aktif';
-                        }
-
-                        if (! $now->between($start, $end)) {
-                            return sprintf('Sesi sudah berakhir pada %s', $end->format('H:i'));
-                        }
-
-                        $remainingMinutes = $now->diffInMinutes($end, false);
-                        $remainingText = $remainingMinutes > 0
-                            ? ($remainingMinutes >= 60
-                                ? intval($remainingMinutes / 60) . ' jam' . ($remainingMinutes % 60 ? ' ' . ($remainingMinutes % 60) . ' menit' : '')
-                                : $remainingMinutes . ' menit')
-                            : 'kurang dari 1 menit';
-
-                        return sprintf(
-                            'Login sejak %s • berakhir %s • tersisa %s',
-                            $start->format('H:i'),
-                            $end->format('H:i'),
-                            $remainingText,
-                        );
-                    })
-                    ->tooltip(function (User $record) {
-                        $lifetimeSeconds = config('session.lifetime') * 60;
-
-                        if (! empty($record->sessionCacheInitialized) && ! empty($record->cachedLatestSession)) {
-                            $start = Carbon::createFromTimestamp($record->cachedLatestSession->last_activity, config('app.timezone'));
-                            $end = $start->copy()->addSeconds($lifetimeSeconds);
-                        } elseif ($record->last_login_at !== null && ($record->last_logout_at === null || $record->last_login_at->greaterThan($record->last_logout_at))) {
-                            $start = $record->last_login_at->copy()->setTimezone(config('app.timezone'));
-                            $end = $start->copy()->addSeconds($lifetimeSeconds);
-                        } else {
-                            return 'Tidak ada sesi login aktif';
-                        }
-
-                        return sprintf('%s - %s (WIB)', $start->format('H:i'), $end->format('H:i'));
-                    })
-                    ->toggleable(),
-
-                TextColumn::make('last_login_at')
-                    ->label('Login Terakhir')
-                    ->dateTime('d M Y H:i')
-                    ->sortable(),
-
-                TextColumn::make('last_logout_at')
-                    ->label('Logout Terakhir')
-                    ->dateTime('d M Y H:i')
-                    ->sortable(),
-
-                // MFA / TWO FACTOR
-                IconColumn::make('mfa_enabled')
-                    ->label('MFA')
-                    ->boolean()
-                    ->getStateUsing(fn(User $record) => ! empty($record->two_factor_secret ?? null))
-                    ->trueIcon('heroicon-m-lock-closed')
-                    ->falseIcon('heroicon-m-lock-open')
-                    ->trueColor('success')
-                    ->falseColor('gray')
-                    ->tooltip(fn(User $record) => ! empty($record->two_factor_secret ?? null) ? 'MFA aktif' : 'MFA tidak aktif')
-                    ->toggleable(isToggledHiddenByDefault: true),
-
-                // UPDATED AT
-                TextColumn::make('updated_at')
-                    ->label('Diperbarui')
-                    ->dateTime('d M Y H:i')
-                    ->sortable()
-                    ->color('gray')
-                    ->toggleable(isToggledHiddenByDefault: true),
+                ])
+                    ->from('md'),
             ])
             ->filters([
 
@@ -375,86 +280,7 @@ class UsersTable
                             ->collapsible(),
 
                     ])
-                    ->query(function (Builder $query, array $data) {
-
-                        // STATUS
-                        $query->when(
-                            $data['status'] ?? null,
-                            fn($q, $value) => $q->where('status', $value)
-                        );
-
-                        // MFA
-                        $query->when(
-                            $data['mfa'] ?? null,
-                            fn($q, $value) => $value === 'enabled'
-                                ? $q->whereNotNull('two_factor_secret')
-                                : $q->whereNull('two_factor_secret')
-                        );
-
-                        // ROLE
-                        $query->when(
-                            $data['access_profiles'] ?? null,
-                            fn($q, $value) => $q->whereHas(
-                                'accessProfiles',
-                                fn($sub) => $sub->whereIn('access_profiles.id', $value)
-                            )
-                        );
-
-                        // UNIT KERJA
-                        $query->when(
-                            $data['unit_kerjas'] ?? null,
-                            fn($q, $value) => $q->whereHas(
-                                'unitKerjas',
-                                fn($sub) => $sub->whereIn('unit_kerja.id', $value)
-                            )
-                        );
-
-                        // LOGIN DATE
-                        $query
-                            ->when(
-                                $data['login_from'] ?? null,
-                                fn($q, $date) => $q->whereDate('last_login_at', '>=', $date)
-                            )
-                            ->when(
-                                $data['login_until'] ?? null,
-                                fn($q, $date) => $q->whereDate('last_login_at', '<=', $date)
-                            );
-
-                        // CREATED DATE
-                        $query
-                            ->when(
-                                $data['created_from'] ?? null,
-                                fn($q, $date) => $q->whereDate('created_at', '>=', $date)
-                            )
-                            ->when(
-                                $data['created_until'] ?? null,
-                                fn($q, $date) => $q->whereDate('created_at', '<=', $date)
-                            );
-
-                        // QUICK FILTERS
-                        $query->when(
-                            $data['quick_filter'] ?? null,
-                            function ($q, $value) {
-
-                                match ($value) {
-
-                                    'secure_users' => $q
-                                        ->where('status', 'active')
-                                        ->whereNotNull('two_factor_secret')
-                                        ->whereHas('accessProfiles'),
-
-                                    'unused_accounts' => $q
-                                        ->where('status', 'active')
-                                        ->whereNull('last_login_at')
-                                        ->where('created_at', '<', now()->subDays(30)),
-
-                                    default => null,
-                                };
-                            }
-                        );
-
-                        return $query;
-                    })
+                    ->query(fn(Builder $query, array $data): Builder => app(UserTableFilterBuilder::class)->apply($query, $data))
                     ->columnSpanFull(),
 
             ], layout: FiltersLayout::Modal)
@@ -465,23 +291,25 @@ class UsersTable
                 //     ->label('Impersonate')
                 //     ->icon('heroicon-m-arrow-right-on-rectangle')
                 //     ->visible(fn(User $record) => Auth::id() !== $record->id),
-                RelationManagerAction::make()
-                    ->label('Manage Role Bundles')
-                    ->icon('heroicon-o-user-group')
-                    ->color('info')
-                    ->slideOver()
-                    ->modalWidth('7xl')
-                    ->relationManager(AccessProfilesRelationManager::make()),
                 ActionGroup::make([
                     ViewAction::make()
-                        ->label('Detail')
+                        ->label('Lihat Pengguna')
                         ->icon('heroicon-m-eye'),
 
                     EditAction::make()
-                        ->label('Edit'),
+                        ->label('Edit Informasi')
+                        ->icon('heroicon-m-pencil-square'),
+
+                    RelationManagerAction::make()
+                        ->label('Kelola Role Bundle')
+                        ->icon('heroicon-o-user-group')
+                        ->color('info')
+                        ->slideOver()
+                        ->modalWidth('7xl')
+                        ->relationManager(AccessProfilesRelationManager::make()),
 
                     Action::make('setStatus')
-                        ->label('Ubah Status')
+                        ->label('Atur Status Akun')
                         ->icon('heroicon-m-adjustments-horizontal')
                         ->schema([
                             Select::make('status')
@@ -497,11 +325,11 @@ class UsersTable
                         ->action(function (User $record, array $data): void {
                             $record->update(['status' => $data['status']]);
                         })
-                        ->modalHeading('Ubah Status Pengguna')
-                        ->modalDescription('Pilih status yang diinginkan untuk pengguna ini.'),
+                        ->modalHeading('Atur Status Akun')
+                        ->modalDescription('Perbarui status akses untuk pengguna ini.'),
 
                     Action::make('terminateSession')
-                        ->label('Hapus Sesi')
+                        ->label('Paksa Logout')
                         ->icon('heroicon-m-arrow-left-end-on-rectangle')
                         ->color('danger')
                         ->requiresConfirmation()
@@ -510,11 +338,15 @@ class UsersTable
                             $deleted = $record->terminateSessions();
 
                             Notification::make()
-                                ->title($deleted ? 'Sesi login pengguna dihapus' : 'Tidak ditemukan sesi aktif')
+                                ->title(
+                                    $deleted
+                                    ? 'Sesi pengguna berhasil dihentikan'
+                                    : 'Tidak ada sesi aktif'
+                                )
                                 ->success()
                                 ->send();
                         }),
-                ]),
+                ])
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
@@ -555,8 +387,8 @@ class UsersTable
 
                     Artisan::call('users:export-json', ['--path' => $relativePath]);
 
-                    return Storage::disk('local')->download(
-                        $relativePath,
+                    return response()->download(
+                        storage_path('app/' . $relativePath),
                         'users.json',
                         ['Content-Type' => 'application/json']
                     );

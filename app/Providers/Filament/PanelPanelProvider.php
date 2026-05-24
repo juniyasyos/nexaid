@@ -28,7 +28,7 @@ class PanelPanelProvider extends PanelProvider
         $name = $cfg['name'] ?? null;
         $version = $cfg['version'] ?? null;
 
-        $themePluginClass = $cfg['theme']['plugin'] ?? \App\Filament\Plugins\PanelTheme::class;
+        $themePluginClass = $cfg['theme']['plugin'] ?? PanelTheme::class;
         $themePlugin = class_exists($themePluginClass)
             ? (method_exists($themePluginClass, 'make') ? $themePluginClass::make() : new $themePluginClass())
             : PanelTheme::make();
@@ -43,6 +43,7 @@ class PanelPanelProvider extends PanelProvider
                 $themePlugin,
                 FilamentApexChartsPlugin::make(),
             ])
+            ->globalSearch(false)
             ->discoverResources(in: app_path('Filament/Panel/Resources'), for: 'App\Filament\Panel\Resources')
             ->discoverPages(in: app_path('Filament/Panel/Pages'), for: 'App\Filament\Panel\Pages')
             ->navigationGroups([
@@ -74,11 +75,11 @@ class PanelPanelProvider extends PanelProvider
                 \App\Http\Middleware\CheckIAMAdmin::class, // Only IAM admins can access
             ]);
 
-        if (! empty($name)) {
+        if (!empty($name)) {
             $panel->brandName($name);
         }
 
-        if (! empty($version)) {
+        if (!empty($version)) {
             $panel->renderHook('panels::topbar.end', fn() => '<div class="hidden sm:flex items-center text-xs text-gray-500 dark:text-gray-400 ml-2">v' . e((string) $version) . '</div>');
         }
 

@@ -1,35 +1,158 @@
-/* Tampilan sidebar */
+/* =========================================================
+   Filament Sidebar - Clean Enterprise Style
+   Rounded: md / lg
+   ========================================================= */
+
+/* Base sidebar surface */
 .fi-sidebar-header,
-.fi-sidebar-nav,
-.fi-sidebar-item > .fi-sidebar-item-btn { @apply bg-white dark:bg-[var(--ds-dark-bg-secondary-color)]; }
-
-.fi-sidebar-nav{ @apply border-r-[0.9px] border-r-[#E0E0E0] dark:border-none; }
-.fi-sidebar-item > .fi-sidebar-item-btn .fi-sidebar-item-icon,
-.fi-sidebar-item > .fi-sidebar-item-btn .fi-sidebar-item-label{ @apply text-gray-800 dark:text-white; }
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn{ @apply bg-primary-600; }
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-icon,
-.fi-sidebar-item.fi-active > .fi-sidebar-item-btn .fi-sidebar-item-label{ @apply text-white; }
-.fi-sidebar-item.fi-active .fi-badge{ @apply dark:bg-primary-700 dark:text-white ring-white font-extrabold; }
-
-/* Sticky pada desktop */
-.fi-panel-panel .fi-sidebar{
-  position: sticky; top: var(--fi-topbar-h);
-  height: calc(100vh - var(--fi-topbar-h));
-  overflow-y: auto; overscroll-behavior: contain;
-}
-@supports (height:100dvh){
-  .fi-panel-panel .fi-sidebar{ height: calc(100dvh - var(--fi-topbar-h)); }
+.fi-sidebar-nav {
+  @apply pt-10 pl-4 px-2 py-1 bg-white dark:bg-[var(--ds-dark-bg-secondary-color)];
 }
 
-/* Drawer mobile 100vh (tidak mengubah desktop) */
-@media (max-width:1023.98px){
-  .fi-panel-panel .fi-sidebar{
-    @apply fixed inset-0 h-screen bg-white dark:bg-[var(--ds-dark-bg-secondary-color)] shadow-xl;
-    width: min(82vw, var(--sb-w, 18rem));
-    transform: translateX(-100%); transition: transform .2s ease-out;
-    z-index: 50; display:flex; flex-direction:column;
+/* Sidebar border */
+.fi-sidebar-nav {
+  @apply border-r border-slate-200 dark:border-r-white/10;
+}
+
+/* Sidebar item button */
+.fi-sidebar-item>.fi-sidebar-item-btn {
+  @apply rounded-md bg-transparent px-3 py-2 text-slate-700 transition-colors duration-150 ease-out;
+}
+
+/* Sidebar item content */
+.fi-sidebar-item>.fi-sidebar-item-btn .fi-sidebar-item-icon,
+.fi-sidebar-item>.fi-sidebar-item-btn .fi-sidebar-item-label {
+  @apply text-slate-700 dark:text-slate-200;
+}
+
+/* Hover state */
+.fi-sidebar-item>.fi-sidebar-item-btn:hover {
+  @apply bg-slate-100 dark:bg-white/5;
+}
+
+.fi-sidebar-item>.fi-sidebar-item-btn:hover .fi-sidebar-item-icon,
+.fi-sidebar-item>.fi-sidebar-item-btn:hover .fi-sidebar-item-label {
+  @apply text-slate-950 dark:text-white;
+}
+
+/* Focus keyboard accessibility */
+.fi-sidebar-item>.fi-sidebar-item-btn:focus-visible {
+  @apply outline-none ring-2 ring-primary-500/30;
+}
+
+/* Active state - soft enterprise style */
+.fi-sidebar-item.fi-active>.fi-sidebar-item-btn {
+  @apply bg-primary-600 text-white shadow-sm;
+}
+
+.fi-sidebar-item.fi-active>.fi-sidebar-item-btn .fi-sidebar-item-icon,
+.fi-sidebar-item.fi-active>.fi-sidebar-item-btn .fi-sidebar-item-label {
+  @apply font-semibold text-white;
+}
+
+/* Active item hover */
+.fi-sidebar-item.fi-active>.fi-sidebar-item-btn:hover {
+  @apply bg-primary-100 dark:bg-primary-500/15;
+}
+
+/* Badge default */
+.fi-sidebar-item .fi-badge {
+  @apply rounded-md font-medium;
+}
+
+/* Badge on active item */
+.fi-sidebar-item.fi-active .fi-badge {
+  @apply bg-primary-100 text-primary-700 ring-primary-200 dark:bg-primary-500/20 dark:text-primary-200 dark:ring-primary-400/20;
+}
+
+/* Sidebar group label */
+.fi-sidebar-group-label {
+  @apply text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500;
+}
+
+/* Sidebar group collapse button / icon */
+.fi-sidebar-group-collapse-button {
+  @apply rounded-md text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 dark:hover:bg-white/5 dark:hover:text-white;
+}
+
+/* Sidebar header */
+.fi-sidebar-header {
+  @apply border-r border-slate-200 px-4 dark:border-r-white/10;
+}
+
+/* Sidebar scrollbar */
+.fi-sidebar {
+  scrollbar-width: thin;
+  scrollbar-color: rgb(203 213 225) transparent;
+}
+
+.fi-sidebar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.fi-sidebar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.fi-sidebar::-webkit-scrollbar-thumb {
+  @apply rounded-md bg-slate-300 dark:bg-white/20;
+}
+
+/* =========================================================
+   Sticky Sidebar Desktop
+   ========================================================= */
+
+.fi-panel-panel .fi-sidebar {
+  position: sticky;
+  top: var(--fi-topbar-h, 4rem);
+  height: calc(100vh - var(--fi-topbar-h, 4rem));
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@supports (height: 100dvh) {
+  .fi-panel-panel .fi-sidebar {
+    height: calc(100dvh - var(--fi-topbar-h, 4rem));
   }
-  .fi-panel-panel .fi-sidebar.fi-sidebar-open{ transform: translateX(0); }
-  .fi-panel-panel .fi-sidebar-header{ @apply shrink-0; }
-  .fi-panel-panel .fi-sidebar-nav{ @apply h-screen overflow-y-auto; }
+}
+
+/* =========================================================
+   Mobile Drawer Sidebar
+   ========================================================= */
+
+@media (max-width: 1023.98px) {
+  .fi-panel-panel .fi-sidebar {
+    @apply fixed inset-y-0 left-0 bg-white shadow-xl dark:bg-[var(--ds-dark-bg-secondary-color)];
+    width: min(82vw, var(--sb-w, 18rem));
+    height: 100vh;
+    z-index: 60;
+
+    display: flex;
+    flex-direction: column;
+
+    transform: translateX(-100%);
+    transition: transform 0.2s ease-out;
+  }
+
+  @supports (height: 100dvh) {
+    .fi-panel-panel .fi-sidebar {
+      height: 100dvh;
+    }
+  }
+
+  .fi-panel-panel .fi-sidebar.fi-sidebar-open {
+    transform: translateX(0);
+  }
+
+  .fi-panel-panel .fi-sidebar-header {
+    @apply shrink-0 border-b border-slate-200 dark:border-b-white/10;
+  }
+
+  .fi-panel-panel .fi-sidebar-nav {
+    @apply flex-1 overflow-y-auto border-r-0;
+  }
+
+  .fi-sidebar-item>.fi-sidebar-item-btn {
+    @apply rounded-md;
+  }
 }

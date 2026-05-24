@@ -9,7 +9,8 @@ use Filament\Widgets\TableWidget as BaseWidget;
 
 class ApplicationAccessSummary extends BaseWidget
 {
-    protected static ?string $heading = 'Application Access Summary';
+    protected static ?string $heading = 'Application Access';
+    protected static ?string $description = 'Monitor aplikasi yang terhubung dengan Auth Server';
 
     protected static ?int $sort = 3;
 
@@ -26,13 +27,11 @@ class ApplicationAccessSummary extends BaseWidget
             ->columns([
                 TextColumn::make('name')
                     ->label('Application Name')
-                    ->searchable()
                     ->sortable()
                     ->wrap(),
 
                 TextColumn::make('app_key')
                     ->label('App Key')
-                    ->searchable()
                     ->sortable()
                     ->weight('bold')
                     ->fontFamily('mono')
@@ -59,6 +58,7 @@ class ApplicationAccessSummary extends BaseWidget
                         'danger' => 'Disabled',
                     ]),
             ])
+            ->description(static::$description)
             ->defaultSort('name')
             ->paginated([10]);
     }

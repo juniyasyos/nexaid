@@ -1,0 +1,22 @@
+/* Main Container - Max width control */
+.fi-main {
+    @apply mx-auto;
+}
+
+/* Override for specific width classes if needed */
+.fi-main:not([class*="fi-width-"]) {
+    @apply mx-auto;
+}
+
+/* Responsive max-width adjustments */
+@media (min-width: 1280px) {
+    .fi-main:not([class*="fi-width-"]) {
+        max-width: 1400px;
+    }
+}
+
+@media (min-width: 1536px) {
+    .fi-main:not([class*="fi-width-"]) {
+        max-width: 1600px;
+    }
+}

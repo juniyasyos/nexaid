@@ -146,6 +146,17 @@
   background: #111827 !important;
 }
 
+/* Stats Widget style */
+.fi-section-content-ctn {
+  @apply border-0 bg-transparent dark:bg-[var(--ds-dark-bg-primary-color)];
+}
+.fi-sc-component {
+  @apply ring-0 bg-transparent dark:bg-[var(--ds-dark-bg-primary-color)];
+}
+.fi-sc-component .fi-wi-stats-overview-stat {
+  @apply ring-0 dark:bg-[var(--ds-dark-bg-secondary-color)] dark:border dark:border-white/10 rounded-md;
+}
+
 /* Enhanced mobile responsiveness */
 @media (max-width: 640px) {
   .fi-toggle,
@@ -159,29 +170,6 @@
   .fi-fo-toggle:hover,
   [role="switch"]:hover {
     transform: scale(0.98);
-  }
-}
-
-/* Main Container - Max width control */
-.fi-main {
-  @apply max-w-7xl mx-auto;
-}
-
-/* Override for specific width classes if needed */
-.fi-main:not([class*="fi-width-"]) {
-  @apply max-w-7xl mx-auto;
-}
-
-/* Responsive max-width adjustments */
-@media (min-width: 1280px) {
-  .fi-main:not([class*="fi-width-"]) {
-    max-width: 1400px;
-  }
-}
-
-@media (min-width: 1536px) {
-  .fi-main:not([class*="fi-width-"]) {
-    max-width: 1600px;
   }
 }
 

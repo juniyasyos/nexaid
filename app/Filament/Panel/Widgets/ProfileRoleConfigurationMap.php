@@ -15,7 +15,8 @@ class ProfileRoleConfigurationMap extends BaseWidget
 {
     protected static ?int $sort = 3;
 
-    protected static ?string $heading = 'Role Bundles Configuration';
+    protected static ?string $heading = 'Role Bundles';
+    protected static ?string $description = 'Konfigurasi paket role dan distribusi pengguna';
 
     protected int|string|array $columnSpan = 'full';
 
@@ -58,7 +59,7 @@ class ProfileRoleConfigurationMap extends BaseWidget
             // Create query builder for table display
             $query = AccessProfile::query()
                 ->select('id', 'name', 'is_system', 'is_active')
-                ->orderBy('name');
+                ->orderBy('is_system', 'desc');
 
             return $table
                 ->query($query)
@@ -91,8 +92,9 @@ class ProfileRoleConfigurationMap extends BaseWidget
                         })
                         ->alignment('center'),
 
-                    BadgeColumn::make('is_active')
+                    TextColumn::make('is_active')
                         ->label('Status')
+                        ->badge()
                         ->getStateUsing(function ($record) {
                             return $record->is_active ? 'Active' : 'Inactive';
                         })
@@ -101,8 +103,9 @@ class ProfileRoleConfigurationMap extends BaseWidget
                             'danger' => 'Inactive',
                         ]),
 
-                    BadgeColumn::make('is_system')
+                    TextColumn::make('is_system')
                         ->label('Type')
+                        ->badge()
                         ->getStateUsing(function ($record) {
                             return $record->is_system ? 'System' : 'Custom';
                         })
@@ -112,6 +115,7 @@ class ProfileRoleConfigurationMap extends BaseWidget
                         ]),
                 ])
                 ->defaultSort('name')
+                ->description(static::$description)
                 ->emptyStateHeading('No access profiles found')
                 ->emptyStateDescription('Access profiles will appear here.')
                 ->emptyStateIcon('heroicon-o-shield-exclamation');

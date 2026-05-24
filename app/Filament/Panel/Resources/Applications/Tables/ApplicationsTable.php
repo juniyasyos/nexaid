@@ -3,6 +3,8 @@
 namespace App\Filament\Panel\Resources\Applications\Tables;
 
 use App\Domain\Iam\Models\Application;
+use App\Domain\Applications\Services\ApplicationSyncOrchestrator;
+use App\Domain\Shared\Services\DateRangeFilterBuilder;
 use App\Domain\Iam\Services\ApplicationRoleSyncService;
 use App\Jobs\SyncApplicationUsers;
 use App\Filament\Panel\Resources\Applications\RelationManagers\RolesRelationManager;
@@ -98,24 +100,8 @@ class ApplicationsTable
                         DatePicker::make('from'),
                         DatePicker::make('until'),
                     ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        return $query
-                            ->when($data['from'] ?? null, fn(Builder $query, $date): Builder => $query->whereDate('updated_at', '>=', $date))
-                            ->when($data['until'] ?? null, fn(Builder $query, $date): Builder => $query->whereDate('updated_at', '<=', $date));
-                    })
-                    ->indicateUsing(function (array $data): array {
-                        $indicators = [];
-
-                        if (! empty($data['from'])) {
-                            $indicators[] = 'Updated from ' . $data['from'];
-                        }
-
-                        if (! empty($data['until'])) {
-                            $indicators[] = 'Updated until ' . $data['until'];
-                        }
-
-                        return $indicators;
-                    }),
+                    ->query(fn(Builder $query, array $data): Builder => DateRangeFilterBuilder::build($query, $data, 'updated_at'))
+                    ->indicateUsing(fn(array $data): array => DateRangeFilterBuilder::getIndicators($data, 'Updated')),
                 TrashedFilter::make(),
             ])
             ->recordActions([
@@ -143,37 +129,13 @@ class ApplicationsTable
                         ->icon('heroicon-o-arrow-path')
                         ->color('info')
                         ->action(function (Application $record): void {
-                            $service = new ApplicationRoleSyncService();
-                            $result = $service->syncRoles($record);
-
-                            if (!$result['success']) {
-                                Notification::make()
-                                    ->title('Sync Failed')
-                                    ->body($result['error'])
-                                    ->danger()
-                                    ->send();
-                                return;
-                            }
-
-                            $message = $result['message'] . "\n\n";
-                            $comparison = $result['comparison'];
-                            $inSync = count($comparison['in_sync']);
-                            $missing = count($comparison['missing_in_client']);
-                            $extra = count($comparison['extra_in_client']);
-
-                            $message .= "Current Status:\n";
-                            $message .= "✓ In Sync: {$inSync} role(s)\n";
-                            if ($missing > 0) {
-                                $message .= "⚠ Missing in Client: {$missing} role(s)\n";
-                            }
-                            if ($extra > 0) {
-                                $message .= "ℹ Extra in Client: {$extra} role(s)";
-                            }
+                            $orchestrator = app(ApplicationSyncOrchestrator::class);
+                            $result = $orchestrator->syncRoles($record);
 
                             Notification::make()
-                                ->title('Roles Synchronized')
-                                ->body($message)
-                                ->success()
+                                ->title($result['success'] ? 'Roles Synchronized' : 'Sync Failed')
+                                ->body($orchestrator->formatSyncResult($result))
+                                ->color($result['success'] ? 'success' : 'danger')
                                 ->send();
                         }),
                     Action::make('syncUsers')
@@ -182,18 +144,9 @@ class ApplicationsTable
                         ->color('primary')
                         ->requiresConfirmation()
                         ->action(function (Application $record): void {
-                            // gather all access profiles that reference roles from this
-                            // specific application and send their ids to the job. this
-                            // keeps compatibility with the previous behaviour while
-                            // still using the new profile-based mechanism.
-                            $profileIds = \App\Domain\Iam\Models\AccessProfile::query()
-                                ->whereHas('roles', function ($q) use ($record) {
-                                    $q->where('application_id', $record->id);
-                                })
-                                ->pluck('id')
-                                ->toArray();
+                            $orchestrator = app(ApplicationSyncOrchestrator::class);
+                            $orchestrator->syncUsers($record);
 
-                            SyncApplicationUsers::dispatch($record, $profileIds);
                             Notification::make()
                                 ->title('User sync job queued')
                                 ->success()
