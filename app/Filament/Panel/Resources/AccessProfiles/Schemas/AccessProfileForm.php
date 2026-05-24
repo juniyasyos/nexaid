@@ -8,6 +8,7 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\Toggle;
+use Filament\Forms\Components\ToggleButtons;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -32,6 +33,8 @@ class AccessProfileForm
                                     ->label('Identifier')
                                     ->maxLength(64)
                                     ->disabled()
+                                    ->hidden()
+                                    ->copyable()
                                     ->dehydrated(false)
                                     ->helperText('Generated automatically once and cannot be changed.')
                                     ->prefixIcon('heroicon-m-finger-print'),
@@ -40,7 +43,9 @@ class AccessProfileForm
                                     TextInput::make('name')
                                         ->label('Bundle Name')
                                         ->required()
+                                        ->prefixIcon('heroicon-m-users')
                                         ->maxLength(255)
+                                        ->columnSpanFull()
                                         ->placeholder('Example: Quality Team, Hospital Management, IT Support')
                                         ->live(onBlur: true)
                                         ->afterStateUpdated(function (string $operation, $state, Set $set, Get $get): void {
@@ -59,6 +64,7 @@ class AccessProfileForm
                                     TextInput::make('slug')
                                         ->label('Bundle Slug')
                                         ->required()
+                                        ->hidden()
                                         ->maxLength(64)
                                         ->rules(['regex:/^[a-z0-9\-_]+$/'])
                                         ->placeholder('quality_team, manajemen_rs, it_support')
@@ -67,16 +73,43 @@ class AccessProfileForm
                                         ->prefixIcon('heroicon-m-finger-print'),
                                 ]),
 
-                                Grid::make(2)->schema([
-                                    Toggle::make('is_system')
-                                        ->label('System Bundle')
-                                        ->default(false)
-                                        ->helperText('If enabled, this bundle is considered critical and usually cannot be deleted or modified by regular users.'),
-                                    Toggle::make('is_active')
-                                        ->label('Active')
-                                        ->default(true)
-                                        ->helperText('Disable to prevent new user assignments while keeping existing assignments.'),
-                                ]),
+                                Grid::make([
+                                    'default' => 1,
+                                    'md' => 2,
+                                ])
+                                    ->schema([
+                                        ToggleButtons::make('is_system')
+                                            ->label('System Bundle')
+                                            ->boolean()
+                                            ->inline()
+                                            ->grouped()
+                                            ->default(false)
+                                            ->icons([
+                                                true => 'heroicon-m-shield-check',
+                                                false => 'heroicon-m-user',
+                                            ])
+                                            ->colors([
+                                                true => 'warning',
+                                                false => 'gray',
+                                            ])
+                                            ->helperText('System bundles are intended for critical system access and should only be managed by privileged administrators.'),
+
+                                        ToggleButtons::make('is_active')
+                                            ->label('Profile Status')
+                                            ->boolean()
+                                            ->inline()
+                                            ->grouped()
+                                            ->default(true)
+                                            ->icons([
+                                                true => 'heroicon-m-check-circle',
+                                                false => 'heroicon-m-pause-circle',
+                                            ])
+                                            ->colors([
+                                                true => 'success',
+                                                false => 'gray',
+                                            ])
+                                            ->helperText('Inactive profiles cannot be assigned to new users, but existing assignments remain unaffected.'),
+                                    ]),
                             ]),
 
                         Section::make('Included Roles')
@@ -112,8 +145,8 @@ class AccessProfileForm
                                     )
                                     ->getOptionLabelFromRecordUsing(
                                         fn(ApplicationRole $record): string => ($record->application?->name ?? 'App ID: ' . $record->application_id)
-                                            . ' — '
-                                            . $record->name
+                                        . ' — '
+                                        . $record->name
                                     )
                                     ->multiple()
                                     ->default([])

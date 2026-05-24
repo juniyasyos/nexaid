@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Support\Str;
 
 class ApplicationRole extends Model
 {
@@ -101,5 +102,24 @@ class ApplicationRole extends Model
     public function getIdentifierAttribute(): string
     {
         return $this->application->app_key.':'.$this->slug;
+    }
+
+    protected static function booted(): void
+    {
+        static::creating(function (self $role): void {
+            // If slug not provided, generate from name
+            if (empty($role->slug) && ! empty($role->name)) {
+                $base = Str::slug($role->name);
+                $slug = $base;
+                $i = 1;
+
+                while (self::where('application_id', $role->application_id)->where('slug', $slug)->exists()) {
+                    $i++;
+                    $slug = $base . '-' . $i;
+                }
+
+                $role->slug = $slug;
+            }
+        });
     }
 }

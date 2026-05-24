@@ -123,15 +123,10 @@ class RolesRelationManager extends RelationManager
                             ->send();
                     }),
                 CreateAction::make()
+                    ->icon('heroicon-m-plus')
                     ->label('Create Role')
                     ->modalHeading('Create New Application Role')
                     ->schema([
-                        TextInput::make('slug')
-                            ->label('Role Slug')
-                            ->required()
-                            ->unique('iam_roles', 'slug', ignoreRecord: true)
-                            ->alphaDash()
-                            ->helperText('Lowercase letters, numbers, dashes and underscores only.'),
                         TextInput::make('name')
                             ->label('Role Name')
                             ->required()

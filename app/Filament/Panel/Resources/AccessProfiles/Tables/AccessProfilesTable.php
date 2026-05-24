@@ -92,20 +92,12 @@ class AccessProfilesTable
             ->recordActions([
                 ViewAction::make(),
                 EditAction::make(),
-                ActionGroup::make([
-                    RelationManagerAction::make()
-                        ->label('Manage Roles')
-                        ->icon('heroicon-o-shield-check')
-                        ->color('info')
-                        ->slideOver()
-                        ->relationManager(RolesRelationManager::make()),
-                    RelationManagerAction::make()
-                        ->label('Manage Users')
-                        ->icon('heroicon-o-users')
-                        ->color('success')
-                        ->slideOver()
-                        ->relationManager(UsersRelationManager::make()),
-                ]),
+                RelationManagerAction::make()
+                    ->label('Manage Users')
+                    ->icon('heroicon-o-users')
+                    ->color('success')
+                    ->slideOver()
+                    ->relationManager(UsersRelationManager::make()),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([

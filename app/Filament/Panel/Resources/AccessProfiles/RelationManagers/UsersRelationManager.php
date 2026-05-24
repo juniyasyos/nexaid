@@ -27,45 +27,27 @@ class UsersRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
-            ->modifyQueryUsing(fn($query) => $query->with('assignedByUser'))
             ->columns([
                 TextColumn::make('name')
                     ->label('User Name')
                     ->searchable()
                     ->sortable()
+                    ->description(fn($record) => $record->nip)
                     ->weight('bold'),
-                TextColumn::make('email')
-                    ->label('Email')
-                    ->searchable()
-                    ->sortable()
-                    ->copyable()
-                    ->icon('heroicon-m-envelope'),
-                IconColumn::make('active')
-                    ->label('Active')
-                    ->boolean()
-                    ->trueIcon('heroicon-o-check-circle')
-                    ->falseIcon('heroicon-o-x-circle')
-                    ->trueColor('success')
-                    ->falseColor('danger'),
                 TextColumn::make('pivot.assigned_by')
                     ->label('Assigned By')
                     ->state(function ($record) {
-                        // OPTIMIZATION: Leverage loaded relationships instead of individual lookups
-                        // The assignedByUser relationship will be batch-loaded by the table builder
-                        if ($record->assignedByUser) {
-                            return $record->assignedByUser->name;
-                        }
                         if ($record->pivot->assigned_by) {
                             return 'ID: ' . $record->pivot->assigned_by;
                         }
                         return 'System';
                     })
-                    ->toggleable(),
+                    ->toggleable(isToggledHiddenByDefault: false),
                 TextColumn::make('pivot.created_at')
                     ->label('Assigned At')
                     ->dateTime('M d, Y H:i')
                     ->sortable()
-                    ->toggleable(),
+                    ->toggledHiddenByDefault(false),
             ])
             ->headerActions([
                 AttachAction::make()
@@ -100,7 +82,7 @@ class UsersRelationManager extends RelationManager
                     ->modalHeading('Remove user from profile')
                     ->modalDescription('Are you sure you want to remove this user from the access profile?')
                     ->after(function ($record) {
-                        if (! ($record instanceof User)) {
+                        if (!($record instanceof User)) {
                             return;
                         }
 
@@ -136,7 +118,7 @@ class UsersRelationManager extends RelationManager
                                 ->all();
 
                             foreach ($records as $record) {
-                                if (! ($record instanceof User)) {
+                                if (!($record instanceof User)) {
                                     continue;
                                 }
 

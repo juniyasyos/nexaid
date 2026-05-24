@@ -23,6 +23,7 @@ class EditApplication extends EditRecord
                 ->label('Manage Roles')
                 ->record($this->getRecord())
                 ->slideOver()
+                ->icon('heroicon-m-shield-check')
                 ->relationManager(RolesRelationManager::make()),
 
             ActionGroup::make([
