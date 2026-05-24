@@ -31,10 +31,6 @@ class UserObserver
 
     public function saved(User $user): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         if (! $user->wasRecentlyCreated && ! $user->wasChanged($this->syncAttributes)) {
             return;
         }
@@ -71,10 +67,6 @@ class UserObserver
 
     public function updated(User $user): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         if (! $user->wasChanged($this->syncAttributes)) {
             return;
         }
@@ -97,10 +89,6 @@ class UserObserver
 
     public function deleted(User $user): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         Log::warning('iam.user_observer_deleted', [
             'user_id' => $user->id,
             'nip' => $user->nip,
@@ -117,10 +105,6 @@ class UserObserver
 
     public function restored(User $user): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         Log::info('iam.user_observer_restored', [
             'user_id' => $user->id,
             'nip' => $user->nip,
@@ -137,10 +121,6 @@ class UserObserver
 
     public function forceDeleted(User $user): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         Log::warning('iam.user_observer_force_deleted', [
             'user_id' => $user->id,
             'nip' => $user->nip,
@@ -170,10 +150,6 @@ class UserObserver
      */
     public function relationshipChanged(User $user, string $note = 'related'): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         // OPTIMIZATION: Only log count instead of loading all roles/permissions
         $rolesCount = $user->relationLoaded('roles') ? $user->roles->count() : $user->roles()->count();
         $permissionsCount = $user->relationLoaded('permissions') ? count($user->getPermissionNames()) : 0;

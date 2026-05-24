@@ -73,13 +73,10 @@ class RolesRelationManager extends RelationManager
             ])
             ->headerActions([
                 Action::make('syncRoles')
-                    ->label(fn() => setting('iam.role_sync_mode', 'pull') === 'push' ? 'Push Roles to Client' : 'Pull Roles from Client')
+                    ->label('Push Roles to Client')
                     ->icon('heroicon-o-arrow-path')
                     ->color('info')
                     ->action(function (): void {
-                        $mode = setting('iam.role_sync_mode', 'pull');
-                        $allowCreate = setting('iam.role_sync_from_iam_allow_create', false);
-
                         $service = new ApplicationRoleSyncService();
                         $result = $service->syncRoles($this->getOwnerRecord());
 
@@ -92,29 +89,7 @@ class RolesRelationManager extends RelationManager
                             return;
                         }
 
-                        $bodyMessage = $result['message'] ?? 'Sync completed';
-                        $message = $bodyMessage . "\n\n";
-                        $message .= "Mode: {$mode} (create on client: " . ($allowCreate ? 'yes' : 'no') . ")\n";
-                        $message .= "\n";
-
-                        $comparison = $result['comparison'] ?? null;
-                        if ($comparison && is_array($comparison)) {
-                            $inSync = count($comparison['in_sync'] ?? []);
-                            $missing = count($comparison['missing_in_client'] ?? []);
-                            $extra = count($comparison['extra_in_client'] ?? []);
-
-                            $message .= "Current Status:\n";
-                            $message .= "✓ In Sync: {$inSync} role(s)\n";
-                            if ($missing > 0) {
-                                $message .= "⚠ Missing in Client: {$missing} role(s)\n";
-                            }
-                            if ($extra > 0) {
-                                $message .= "ℹ Extra in Client: {$extra} role(s)\n";
-                            }
-                        } else {
-                            $message .= "⚠ Status: No comparison data available\n";
-                            $message .= "   (Roles may not have been created due to client restrictions)\n";
-                        }
+                        $message = $result['message'] ?? 'Roles pushed to client successfully.';
 
                         Notification::make()
                             ->title('Roles Synchronized')

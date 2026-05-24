@@ -19,11 +19,6 @@ class UserUnitKerjaObserver
             return;
         }
 
-        // Only track if we're in push mode
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         $userId = $model->user_id ?? null;
         $unitKerjaId = $model->unit_kerja_id ?? null;
 

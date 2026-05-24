@@ -41,7 +41,7 @@ class ApplicationUserSyncService
     }
 
     /**
-     * Sync users (including their application roles) from client application.
+        * Sync IAM users to the client application.
      *
      * Existing users are looked up by NIP (primary) or email.  New users are
      * created with a random password and marked active by default.  After a
@@ -53,155 +53,7 @@ class ApplicationUserSyncService
      */
     public function syncUsers(Application $application, ?int $userId = null): array
     {
-        $mode = setting('iam.user_sync_mode', 'pull');
-
-        if ($mode === 'push') {
-            return $this->pushUsersToClient($application, $userId);
-        }
-
-        $result = $this->fetchClientUsers($application);
-
-        if (! $result['success']) {
-            return $result;
-        }
-
-        $clientUsers = $result['client_users'];
-        $comparison = $result['comparison'];
-
-        $created = 0;
-        $updated = 0;
-
-        $assignmentService = new UserRoleAssignmentService();
-        if (! empty($this->allowedProfileIds)) {
-            $assignmentService->setAllowedProfileIds($this->allowedProfileIds);
-        }
-
-        foreach ($clientUsers as $cUser) {
-            $userQuery = User::query();
-            if (! empty($cUser['nip'])) {
-                $userQuery->where('nip', $cUser['nip']);
-            }
-            if (! empty($cUser['email'])) {
-                $userQuery->orWhere('email', $cUser['email']);
-            }
-            $user = $userQuery->first();
-
-            if (! $user) {
-                $user = User::create([
-                    'nip' => $cUser['nip'] ?? null,
-                    'name' => $cUser['name'] ?? null,
-                    'email' => $cUser['email'] ?? null,
-                    'password' => bcrypt('rschjaya1234'),
-                    'status' => $this->resolveStatusValue($cUser, 'active'),
-                ]);
-
-                Log::info('iam.user_sync_created_user', [
-                    'application_id' => $application->id,
-                    'user_id' => $user->id,
-                    'nip' => $user->nip,
-                    'email' => $user->email,
-                    'name' => $user->name,
-                    'status' => $user->status,
-                ]);
-
-                if (empty($user->email)) {
-                    Log::warning('iam.user_sync_created_user_missing_email', [
-                        'application_id' => $application->id,
-                        'user_id' => $user->id,
-                        'nip' => $user->nip,
-                        'name' => $user->name,
-                    ]);
-                }
-
-                $created++;
-            } else {
-                $changesBefore = $user->only(['nip', 'name', 'email', 'status']);
-
-                $forcePull = setting('iam.user_sync_force_pull', false);
-                                $forcePull = setting('iam.user_sync_force_pull', false);
-                $resolvedStatus = $this->resolveStatusValue($cUser, $user->status);
-
-                if ($forcePull) {
-                    $user->update([
-                        'name' => $cUser['name'] ?? null,
-                        'email' => $cUser['email'] ?? null,
-                        'status' => $resolvedStatus,
-                    ]);
-                } else {
-                    $user->update([
-                        'name' => array_key_exists('name', $cUser) ? $cUser['name'] : $user->name,
-                        'email' => array_key_exists('email', $cUser) ? $cUser['email'] : $user->email,
-                        'status' => $resolvedStatus,
-                    ]);
-                }
-
-                $changesAfter = $user->only(['nip', 'name', 'email', 'status']);
-
-                Log::info('iam.user_sync_updated_user', [
-                    'application_id' => $application->id,
-                    'user_id' => $user->id,
-                    'before' => $changesBefore,
-                    'after' => $changesAfter,
-                ]);
-
-                if (empty($user->email)) {
-                    Log::warning('iam.user_sync_updated_user_missing_email', [
-                        'application_id' => $application->id,
-                        'user_id' => $user->id,
-                        'nip' => $user->nip,
-                        'name' => $user->name,
-                    ]);
-                }
-
-                $updated++;
-            }
-
-            $roleSlugs = [];
-            if ($this->syncMode === 'manual' && isset($this->manualRoleMapping[$application->id])) {
-                $roleSlugs = $this->manualRoleMapping[$application->id];
-            } else {
-                $roleSlugs = $cUser['roles'] ?? [];
-            }
-
-            // Log role slugs received from client
-            Log::info('user_sync_role_slugs_from_client', [
-                'application_id' => $application->id,
-                'app_key' => $application->app_key,
-                'user_id' => $user->id,
-                'user_email' => $user->email,
-                'user_nip' => $user->nip,
-                'client_role_slugs' => $roleSlugs,
-                'sync_mode' => $this->syncMode,
-                'allowed_profile_ids' => $this->allowedProfileIds ?: 'none',
-            ]);
-
-            try {
-                $assignmentService->syncProfilesForUserAndApp($user, $application, $roleSlugs);
-                $assignmentService->syncProfilesFromExistingAppRoles($user, $application);
-            } catch (\Exception $e) {
-                Log::error('user_role_sync_failed', [
-                    'application_id' => $application->id,
-                    'app_key' => $application->app_key,
-                    'user_id' => $user->id,
-                    'user_email' => $user->email,
-                    'user_nip' => $user->nip,
-                    'error' => $e->getMessage(),
-                    'client_roles' => $roleSlugs,
-                    'sync_mode' => $this->syncMode,
-                    'allowed_profile_ids' => $this->allowedProfileIds ?: 'none',
-                ]);
-            }
-        }
-
-        return [
-            'success' => true,
-            'message' => "Sync completed: {$created} users created, {$updated} users updated",
-            'created' => $created,
-            'updated' => $updated,
-            'iam_users' => $this->getIamUsers($application),
-            'client_users' => $clientUsers,
-            'comparison' => $comparison,
-        ];
+        return $this->pushUsersToClient($application, $userId);
     }
 
     /**
@@ -848,7 +700,7 @@ class ApplicationUserSyncService
                     'app_key' => $application->app_key,
                     'status' => $response->status(),
                     'body' => $response->body(),
-                    'hint' => 'Pastikan client IAM_USER_SYNC_MODE=push dan endpoint /api/iam/push-users dapat dipanggil.',
+                    'hint' => 'Pastikan endpoint /api/iam/push-users dapat dipanggil dan backchannel credentials valid.',
                 ]);
 
                 return [

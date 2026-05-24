@@ -44,8 +44,6 @@ class IamSettings extends Page
             'iam_auth_code_ttl' => $settingService->get('iam.auth_code_ttl', 300),
             'iam_audience' => $settingService->get('iam.audience', null),
             'iam_protect_system_roles' => $settingService->get('iam.protect_system_roles', true),
-            'iam_role_sync_mode' => $settingService->get('iam.role_sync_mode', 'push'),
-            'iam_user_sync_mode' => $settingService->get('iam.user_sync_mode', 'push'),
             'iam_role_sync_from_client_allow_create' => $settingService->get('iam.role_sync_from_client_allow_create', false),
             'iam_role_sync_from_iam_allow_create' => $settingService->get('iam.role_sync_from_iam_allow_create', false),
             'iam_user_sync_from_iam_allow_create' => $settingService->get('iam.user_sync_from_iam_allow_create', true),
@@ -137,18 +135,6 @@ class IamSettings extends Page
                             ->label('User Soft Delete'),
                         Toggle::make('iam_push_deleted_records')
                             ->label('Push Deleted Records'),
-                        Select::make('iam_role_sync_mode')
-                            ->label('Role Sync Mode')
-                            ->options([
-                                'pull' => 'Pull',
-                                'push' => 'Push',
-                            ]),
-                        Select::make('iam_user_sync_mode')
-                            ->label('User Sync Mode')
-                            ->options([
-                                'pull' => 'Pull',
-                                'push' => 'Push',
-                            ]),
                         Toggle::make('iam_role_sync_from_client_allow_create')
                             ->label('Role Create From Client'),
                         Toggle::make('iam_role_sync_from_iam_allow_create')
@@ -206,8 +192,6 @@ class IamSettings extends Page
         $settingService->set('iam.auth_code_ttl', $state['iam_auth_code_ttl'] ?? null);
         $settingService->set('iam.audience', $state['iam_audience'] ?? null);
         $settingService->set('iam.protect_system_roles', $state['iam_protect_system_roles'] ?? null);
-        $settingService->set('iam.role_sync_mode', $state['iam_role_sync_mode'] ?? null);
-        $settingService->set('iam.user_sync_mode', $state['iam_user_sync_mode'] ?? null);
         $settingService->set('iam.role_sync_from_client_allow_create', $state['iam_role_sync_from_client_allow_create'] ?? null);
         $settingService->set('iam.role_sync_from_iam_allow_create', $state['iam_role_sync_from_iam_allow_create'] ?? null);
         $settingService->set('iam.user_sync_from_iam_allow_create', $state['iam_user_sync_from_iam_allow_create'] ?? null);

@@ -29,10 +29,6 @@ class UnitKerjaObserver
 
     public function forceDeleted(UnitKerja $unitKerja): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         // Force delete all user_unit_kerja pivot rows for this unit kerja
         \Illuminate\Support\Facades\DB::table('user_unit_kerja')
             ->where('unit_kerja_id', $unitKerja->getKey())
@@ -50,10 +46,6 @@ class UnitKerjaObserver
 
     protected function dispatchUnitSync(UnitKerja $unitKerja, string $event): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         Log::info('iam.unit_kerja_observer_trigger', [
             'unit_kerja_id' => $unitKerja->getKey(),
             'slug' => $unitKerja->slug,

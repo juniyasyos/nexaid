@@ -599,10 +599,6 @@ class User extends Authenticatable
      */
     public function triggerSync(string $event = 'manual'): void
     {
-        if (setting('iam.user_sync_mode', 'pull') !== 'push') {
-            return;
-        }
-
         \Illuminate\Support\Facades\Log::info('iam.user_access_profile_manual_sync', [
             'user_id' => $this->id,
             'email' => $this->email,

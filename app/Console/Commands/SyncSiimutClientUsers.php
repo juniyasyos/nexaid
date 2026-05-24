@@ -20,7 +20,7 @@ class SyncSiimutClientUsers extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Sync users from Siimut client applications and assign access profiles matching application role slugs. Use --dry-run to preview connectivity and assignment plans without writes.';
+    protected $description = 'Push IAM users to Siimut client applications and assign access profiles matching application role slugs. Use --dry-run to preview connectivity and assignment plans without writes.';
 
     /**
      * Execute the console command.
@@ -46,6 +46,7 @@ class SyncSiimutClientUsers extends Command
             });
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Application> $applications */
         $applications = $query->get();
 
         if ($applications->isEmpty()) {
@@ -54,6 +55,7 @@ class SyncSiimutClientUsers extends Command
         }
 
         foreach ($applications as $app) {
+            /** @var Application $app */
             $this->line('==========');
             $this->info("Syncing app: {$app->id} ({$app->app_key})");
 

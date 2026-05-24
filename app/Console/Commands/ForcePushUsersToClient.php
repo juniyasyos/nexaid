@@ -19,7 +19,7 @@ class ForcePushUsersToClient extends Command
     /**
      * The console command description.
      */
-    protected $description = 'Force push users data from IAM to client applications regardless of iam.user_sync_mode setting.';
+    protected $description = 'Force push users data from IAM to client applications.';
 
     /**
      * Execute the console command.
@@ -37,6 +37,7 @@ class ForcePushUsersToClient extends Command
             $this->info('Menyinkron semua aplikasi IAM.');
         }
 
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Application> $applications */
         $applications = $query->get();
 
         if ($applications->isEmpty()) {
@@ -45,6 +46,7 @@ class ForcePushUsersToClient extends Command
         }
 
         foreach ($applications as $application) {
+            /** @var Application $application */
             $this->line('===========================================');
             $this->info("[{$application->id}] {$application->app_key}: force push ke client");
 

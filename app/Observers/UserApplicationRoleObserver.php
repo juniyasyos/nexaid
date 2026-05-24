@@ -25,7 +25,7 @@ class UserApplicationRoleObserver
 
     protected function dispatchForUser(?int $userId, string $event): void
     {
-        if (! $userId || setting('iam.user_sync_mode', 'pull') !== 'push') {
+        if (! $userId) {
             return;
         }
 

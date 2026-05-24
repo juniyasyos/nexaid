@@ -187,33 +187,11 @@ return [
 
     /*
     |------------------------------------------------------------------------
-    | Role synchronization mode
-    |------------------------------------------------------------------------
-    |
-    | Mode determines direction of role sync between IAM and client.
-    | * pull: IAM pulls roles from client and updates IAM (default)
-    | * push: IAM pushes roles to client
-    */
-    'role_sync_mode' => env('IAM_ROLE_SYNC_MODE', 'push'),
-
-    /*
-    |------------------------------------------------------------------------
-    | User synchronization mode
-    |------------------------------------------------------------------------
-    |
-    | Mode determines direction of user sync between IAM and client.
-    | * pull: IAM pulls users from client and updates IAM (default)
-    | * push: IAM pushes users to client (including delete propagation)
-    */
-    'user_sync_mode' => env('IAM_USER_SYNC_MODE', 'push'),
-
-    /*
-    |------------------------------------------------------------------------
     | Push mode user creation policy
     |------------------------------------------------------------------------
     |
-    | When `user_sync_mode` is `push`, new users are created only if this
-    | setting is true. Default is true, enabling provisioning from IAM.
+    | When IAM pushes users, new users are created only if this setting is
+    | true. Default is true, enabling provisioning from IAM.
     */
     'user_sync_from_iam_allow_create' => env('IAM_USER_SYNC_FROM_IAM_ALLOW_CREATE', true),
 

@@ -72,15 +72,7 @@ class TestUserSync extends Command
         // Step 3: Sync
         $this->info('Step 3️⃣  Running sync...');
 
-        // Check config first
-        $syncMode = setting('iam.user_sync_mode', 'pull');
-        $this->info("   Sync mode: $syncMode");
-
-        if ($syncMode === 'pull') {
-            $this->warn('   ⚠️  PULL mode: Trying to fetch users from client application');
-            $this->warn("   Callback URL: {$app->callback_url}");
-            $this->warn("   Backchannel URL: {$app->backchannel_url}");
-        }
+        $this->info('   Sync mode: push-only');
 
         $service = new ApplicationUserSyncService();
 
@@ -104,22 +96,8 @@ class TestUserSync extends Command
             $this->error("   ❌ Sync failed: {$result['error']}");
             $this->line('');
             $this->info('Step 4️⃣  Why sync failed?');
-            $this->info("   • Config iam.user_sync_mode = $syncMode");
-            if ($syncMode === 'pull') {
-                $this->warn("   • Trying to reach: {$app->callback_url}");
-                $this->error("   • But no client application is running there!");
-                $this->line('');
-                $this->info('Step 5️⃣  How to fix?');
-                $this->line('');
-                $this->info('Option A: Start SIIMUT client app on callback URL');
-                $this->line('   Example: http://127.0.0.1:8088/sso/callback');
-                $this->line('');
-                $this->info('Option B: Switch to PUSH mode (IAM sends users to client)');
-                $this->line('   Set: IAM_USER_SYNC_MODE=push in .env');
-                $this->line('   Then use seeder to assign users to profiles directly');
-                $this->line('   Then click "Sync Users" will push users to client');
-                $this->line('');
-            }
+            $this->info('   • IAM always pushes users to client now.');
+            $this->warn('   • Check the client push endpoint and backchannel credentials.');
             return 1;
         }
 
