@@ -1,4 +1,4 @@
-# NexID
+# NexaID
 
 Enterprise Identity & Access Management Platform.
 
@@ -12,7 +12,7 @@ Enterprise Identity & Access Management Platform.
 
 ## Centralized Workforce Identity
 
-NexID is a centralized Identity & Access Management (IAM) platform designed for organizations that require secure authentication, Single Sign-On (SSO), workforce identity management, and centralized authorization across multiple applications.
+NexaID is a centralized Identity & Access Management (IAM) platform designed for organizations that require secure authentication, Single Sign-On (SSO), workforce identity management, and centralized authorization across multiple applications.
 
 Built for modern enterprise environments with support for NIP-based authentication, organizational structures, role management, and secure application integration.
 
@@ -69,7 +69,7 @@ Built for modern enterprise environments with support for NIP-based authenticati
           │ OAuth2 / SSO
           ▼
 ┌────────────────────┐
-│       NexID        │
+│       NexaID        │
 │────────────────────│
 │ Identity Provider  │
 │ Access Management  │
@@ -82,7 +82,7 @@ Built for modern enterprise environments with support for NIP-based authenticati
 
 ## Identity Principles
 
-NexID is designed around workforce identity using **NIP (Nomor Induk Pegawai)** as the primary authentication identifier.
+NexaID is designed around workforce identity using **NIP (Nomor Induk Pegawai)** as the primary authentication identifier.
 
 | Field | Purpose |
 |---|---|
@@ -118,7 +118,7 @@ NexID is designed around workforce identity using **NIP (Nomor Induk Pegawai)** 
 
 ## Vision
 
-NexID is built to become a modern workforce identity platform focused on centralized authentication, organizational access control, and scalable enterprise integration.
+NexaID is built to become a modern workforce identity platform focused on centralized authentication, organizational access control, and scalable enterprise integration.
 
 ---
 
