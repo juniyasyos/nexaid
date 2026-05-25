@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import {
     Hospital,
-    User,
-    X
+    User
 } from 'lucide-react';
 import type { DashboardProps } from './types';
 import { useAuth } from '../../hooks/useAuth';
