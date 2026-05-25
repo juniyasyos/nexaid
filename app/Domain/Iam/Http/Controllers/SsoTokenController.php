@@ -4,6 +4,7 @@ namespace App\Domain\Iam\Http\Controllers;
 
 use App\Domain\Iam\Models\Application;
 use App\Domain\Iam\Services\TokenBuilder;
+use App\Services\Sso\SsoFlowService;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
@@ -15,7 +16,8 @@ use Illuminate\Support\Str;
 class SsoTokenController extends Controller
 {
     public function __construct(
-        private readonly TokenBuilder $tokenBuilder
+        private readonly TokenBuilder $tokenBuilder,
+        private readonly SsoFlowService $ssoFlowService
     ) {}
 
     /**
@@ -100,6 +102,7 @@ class SsoTokenController extends Controller
      */
     public function authorize(Request $request): JsonResponse
     {
+        // Normalize OAuth param names to our SSO service expectations
         $request->validate([
             'client_id' => 'required|string|exists:applications,app_key',
             'redirect_uri' => 'required|url',
@@ -107,59 +110,13 @@ class SsoTokenController extends Controller
             'state' => 'nullable|string',
         ]);
 
-        /** @var User $user */
-        $user = Auth::user();
+        $request->merge([
+            'app_key' => $request->input('client_id'),
+            'redirect_uri' => $request->input('redirect_uri'),
+            'state' => $request->input('state'),
+        ]);
 
-        if (! $user) {
-            return response()->json([
-                'error' => 'unauthorized',
-                'message' => 'User not authenticated.',
-            ], 401);
-        }
-
-        try {
-            $application = Application::findByKey($request->client_id);
-
-            if (! $application->enabled) {
-                return response()->json([
-                    'error' => 'invalid_client',
-                    'message' => 'Application is not enabled.',
-                ], 400);
-            }
-
-            if (! $application->isValidRedirectUri($request->redirect_uri)) {
-                return response()->json([
-                    'error' => 'invalid_redirect_uri',
-                    'message' => 'Redirect URI not registered for this application.',
-                ], 400);
-            }
-
-            // Generate authorization code
-            $code = Str::random(64);
-            $cacheKey = "auth_code:{$code}";
-
-            Cache::put($cacheKey, [
-                'user_id' => $user->id,
-                'client_id' => $application->app_key,
-                'redirect_uri' => $request->redirect_uri,
-            ], config('iam.auth_code_ttl', 300));
-
-            // Build redirect URL
-            $redirectUrl = $request->redirect_uri . '?code=' . $code;
-            if ($request->has('state')) {
-                $redirectUrl .= '&state=' . $request->state;
-            }
-
-            return response()->json([
-                'redirect_url' => $redirectUrl,
-                'code' => $code,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'authorization_failed',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->ssoFlowService->authorize($request);
     }
 
     /**
@@ -174,41 +131,13 @@ class SsoTokenController extends Controller
             'client_secret' => 'required|string',
         ]);
 
-        try {
-            $application = Application::findByKey($request->client_id);
+        // Normalize to SsoFlowService expectations
+        $request->merge([
+            'app_key' => $request->input('client_id'),
+            'app_secret' => $request->input('client_secret'),
+        ]);
 
-            if (! $application->enabled) {
-                return response()->json([
-                    'error' => 'invalid_client',
-                    'message' => 'Application is not enabled.',
-                ], 400);
-            }
-
-            if (! $application->verifySecret($request->client_secret)) {
-                return response()->json([
-                    'error' => 'invalid_client',
-                    'message' => 'Invalid client credentials.',
-                ], 401);
-            }
-
-            if ($request->grant_type === 'authorization_code') {
-                return $this->handleAuthorizationCodeGrant($request, $application);
-            }
-
-            if ($request->grant_type === 'refresh_token') {
-                return $this->handleRefreshTokenGrant($request);
-            }
-
-            return response()->json([
-                'error' => 'unsupported_grant_type',
-                'message' => 'Grant type not supported.',
-            ], 400);
-        } catch (\Exception $e) {
-            return response()->json([
-                'error' => 'token_request_failed',
-                'message' => $e->getMessage(),
-            ], 500);
-        }
+        return $this->ssoFlowService->token($request);
     }
 
     /**
