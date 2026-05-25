@@ -1,6 +1,7 @@
 <?php
 
 use App\Domain\Iam\Http\Controllers\SsoTokenController;
+use App\Domain\Iam\Http\Controllers\FetchClientRolesController;
 use App\Http\Controllers\SSOController;
 use App\Http\Controllers\UserInfoController;
 use App\Http\Controllers\Sso\SsoRedirectController;
@@ -38,6 +39,9 @@ return [
         Route::post('/iam/notify-token-expired', \App\Http\Controllers\Api\TokenExpiredNotificationController::class)
             ->middleware(SsoLoggingMiddleware::class)
             ->name('api.notify.token.expired');
+
+        Route::get('/iam/client-roles', FetchClientRolesController::class)
+            ->name('api.iam.client-roles');
 
         // Token exchange endpoints (no token required yet)
         Route::middleware([SsoLoggingMiddleware::class])
