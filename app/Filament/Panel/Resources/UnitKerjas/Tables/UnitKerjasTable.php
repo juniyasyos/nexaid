@@ -34,7 +34,15 @@ class UnitKerjasTable
                 ->wrap()
                 ->grow()
                 ->weight(FontWeight::Bold)
-                ->searchable()
+                ->searchable(),
+
+            TextColumn::make('users_count')
+                ->label('Jumlah Pegawai')
+                ->counts('users')
+                ->suffix(' pegawai')
+                ->badge()
+                ->color('success')
+                ->sortable(),
         ];
     }
 

@@ -179,7 +179,7 @@ class ApplicationsTable
 
                 ActionGroup::make([
                     Action::make('toggleEnabled')
-                        ->label(fn(Application $record): string => $record->enabled ? 'Nonaktifkan' : 'Aktifkan')
+                        ->label(fn(Application $record): string => $record->enabled ? 'Nonaktifkan App' : 'Aktifkan App')
                         ->icon(fn(Application $record): string => $record->enabled
                             ? 'heroicon-m-lock-closed'
                             : 'heroicon-m-lock-open')
