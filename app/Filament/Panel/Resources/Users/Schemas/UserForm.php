@@ -183,6 +183,10 @@ class UserForm
                             ->columnSpanFull()
                             ->description('Unggah avatar dan tanda tangan digital pengguna.')
                             ->schema([
+                                TextInput::make('avatar_url')
+                                    ->label('Avatar URL'),
+                                TextInput::make('ttd_url')
+                                    ->label('Tanda Tangan URL'),
                                 Grid::make(2)
                                     ->schema([
                                         FileUpload::make('avatar_url')
