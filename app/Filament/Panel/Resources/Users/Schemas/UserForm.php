@@ -142,8 +142,8 @@ class UserForm
                                                     ->placeholder(
                                                         fn($operation) =>
                                                         $operation === 'create'
-                                                            ? 'Minimal 8 karakter'
-                                                            : 'Kosongkan jika tidak diubah'
+                                                        ? 'Minimal 8 karakter'
+                                                        : 'Kosongkan jika tidak diubah'
                                                     )
                                                     ->default('rschjaya1234')
                                                     ->helperText('Kosongkan saat edit jika tidak ingin mengganti password.')
@@ -191,7 +191,7 @@ class UserForm
                                     ->schema([
                                         FileUpload::make('avatar_url')
                                             ->label('Avatar Pengguna')
-                                            ->disk(\App\Support\StorageFallback::isS3Available() ? 's3' : 'public')
+                                            ->disk(config('media-library.disk_name', 'public'))
                                             ->directory('avatars')
                                             ->image()
                                             ->imageEditor()
@@ -202,7 +202,7 @@ class UserForm
 
                                         FileUpload::make('ttd_url')
                                             ->label('Tanda Tangan')
-                                            ->disk(\App\Support\StorageFallback::isS3Available() ? 's3' : 'public')
+                                            ->disk(config('media-library.disk_name', 'public'))
                                             ->directory('ttd')
                                             ->image()
                                             ->openable()
