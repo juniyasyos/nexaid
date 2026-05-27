@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
-class SwapGenderPerempuanFemaleSeeder extends Seeder
+class SwapGenderSeeder extends Seeder
 {
     /**
      * Normalize gender values to English:
