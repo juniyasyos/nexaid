@@ -42,13 +42,19 @@ class ExportUsersJson extends Command
         }
 
         $path = $this->option('path') ?: 'exports/users.json';
-        $users = [];
         $totalUsers = 0;
+        $isFirstRow = true;
+        $disk = Storage::disk('local');
 
-        // OPTIMIZATION: Use chunking to avoid loading entire users table into memory
-        $query->chunk(500, function ($chunk) use (&$users, &$totalUsers) {
+        $disk->put($path, '[');
+
+        // OPTIMIZATION: Stream JSON per chunk to avoid loading the entire users table into memory
+        $query->chunk(500, function ($chunk) use (&$totalUsers, &$isFirstRow, $disk, $path) {
+            $chunkLines = [];
+
             foreach ($chunk as $user) {
-                $users[] = array_merge($user->getAttributes(), [
+                /** @var User $user */
+                $row = array_merge($user->getAttributes(), [
                     'accessProfiles' => $user->accessProfiles->pluck('slug')->values()->all(),
                     'unit_kerjas' => $user->unitKerjas->map(static function ($unitKerja): array {
                         return [
@@ -58,19 +64,24 @@ class ExportUsersJson extends Command
                         ];
                     })->values()->all(),
                 ]);
+
+                $json = json_encode($row, JSON_UNESCAPED_UNICODE);
+                if ($json === false) {
+                    throw new \RuntimeException('Failed to encode user row: ' . json_last_error_msg());
+                }
+
+                $chunkLines[] = $json;
                 $totalUsers++;
+            }
+
+            if (! empty($chunkLines)) {
+                $prefix = $isFirstRow ? '' : ",\n";
+                $disk->append($path, $prefix . implode(",\n", $chunkLines));
+                $isFirstRow = false;
             }
         });
 
-        $payload = json_encode($users, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
-
-        if ($payload === false) {
-            $this->error('Failed to encode JSON: ' . json_last_error_msg());
-
-            return self::FAILURE;
-        }
-
-        Storage::disk('local')->put($path, $payload);
+        $disk->append($path, "]");
 
         $this->info('Users exported: storage/app/' . $path);
         $this->info('Total users: ' . $totalUsers);

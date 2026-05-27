@@ -103,8 +103,8 @@ class UserForm
                                                 Select::make('gender')
                                                     ->label('Jenis Kelamin')
                                                     ->options([
-                                                        'male' => '🧑Laki-laki',
-                                                        'female' => '👩Perempuan',
+                                                        'male' => '🧑Male',
+                                                        'female' => '👩female',
                                                     ])
                                                     ->nullable()
                                                     ->prefixIcon('heroicon-m-user')

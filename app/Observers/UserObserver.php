@@ -179,17 +179,11 @@ class UserObserver
             'current' => $user->only(array_unique(array_merge(['id'], $this->syncAttributes))),
         ]);
 
-        // OPTIMIZATION: Batch job dispatch using cache like UserAccessProfileObserver
-        $cacheKey = "pending_sync_user.{$user->id}";
-        if (!Cache::has($cacheKey)) {
-            Cache::put($cacheKey, true, 5);
-            SyncApplicationUsers::dispatch([], [], [], $user->id);
-        } else {
-            Log::debug('iam.user_observer_sync_batched', [
-                'user_id' => $user->id,
-                'event' => $event,
-                'reason' => 'Job already scheduled recently',
-            ]);
-        }
+        // Schedule batched sync to avoid immediate fan-out on rapid changes
+        \App\Services\Sync\BatchedSyncScheduler::scheduleUser($user->id);
+        Log::debug('iam.user_observer_sync_scheduled', [
+            'user_id' => $user->id,
+            'event' => $event,
+        ]);
     }
 }

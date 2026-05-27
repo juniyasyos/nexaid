@@ -5,6 +5,7 @@ namespace App\Services\Auth;
 use App\Models\Session;
 use App\Services\Sso\SsoLogger;
 use App\Services\JWTTokenService;
+use App\Jobs\RevokeUserRefreshTokensJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -178,12 +179,8 @@ class SessionService
                 'session_id' => $request->session()->getId(),
             ]);
 
-            // Revoke refresh tokens (best-effort)
-            \App\Domain\Iam\Models\Application::query()
-                ->pluck('app_key')
-                ->each(function (string $appKey) use ($user) {
-                    $this->jwtService->revokeRefreshToken($user->id, $appKey);
-                });
+            // Revoke refresh tokens asynchronously to avoid blocking logout request
+            RevokeUserRefreshTokensJob::dispatch($user->id);
 
             if ($request->hasSession() && $request->session()->getId()) {
                 $sessionModel = Session::find($request->session()->getId());

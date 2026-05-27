@@ -10,7 +10,7 @@ class SwapGenderSeeder extends Seeder
     /**
      * Normalize gender values to English:
      * - Perempuan -> female
-     * - Laki-laki (and common variants) -> male
+     * - Male (and common variants) -> male
      */
     public function run(): void
     {
@@ -21,7 +21,7 @@ class SwapGenderSeeder extends Seeder
         $map = [
             'Perempuan' => 'female',
             'perempuan' => 'female',
-            'laki-laki' => 'male',
+            'Male' => 'male',
             'laki laki' => 'male',
             'laki' => 'male',
         ];

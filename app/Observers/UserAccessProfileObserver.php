@@ -116,19 +116,11 @@ class UserAccessProfileObserver
             'timestamp' => now()->toDateTimeString(),
         ]);
 
-        // Cache key to batch sync requests
-        $cacheKey = "pending_sync_user.{$user->id}";
-
-        // Only dispatch job if one hasn't been scheduled in the last 5 seconds
-        if (!Cache::has($cacheKey)) {
-            Cache::put($cacheKey, true, 5);
-            SyncApplicationUsers::dispatch([], [], [], $user->id);
-        } else {
-            Log::debug('iam.user_access_profile_sync_batched', [
-                'user_id' => $user->id,
-                'event' => $event,
-                'reason' => 'Job already scheduled recently',
-            ]);
-        }
+        // Schedule batched sync; avoid immediate per-change dispatch
+        \App\Services\Sync\BatchedSyncScheduler::scheduleUser($user->id);
+        Log::debug('iam.user_access_profile_sync_scheduled', [
+            'user_id' => $user->id,
+            'event' => $event,
+        ]);
     }
 }

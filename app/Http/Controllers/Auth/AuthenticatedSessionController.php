@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Models\Session;
 use App\Services\Sso\SsoLogger;
+use App\Jobs\RevokeUserRefreshTokensJob;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -252,13 +253,8 @@ class AuthenticatedSessionController extends Controller
 
             // Revoke refresh tokens (best-effort) and mark logout time so
             // previously issued access tokens are treated as invalid.
-            $jwtService = app(\App\Services\JWTTokenService::class);
-
-            \App\Domain\Iam\Models\Application::query()
-                ->pluck('app_key')
-                ->each(function (string $appKey) use ($jwtService, $user) {
-                    $jwtService->revokeRefreshToken($user->id, $appKey);
-                });
+            // Dispatch revocation to background job to avoid blocking logout
+            RevokeUserRefreshTokensJob::dispatch($user->id);
 
             if ($request->hasSession() && $request->session()->getId()) {
                 $sessionModel = Session::find($request->session()->getId());

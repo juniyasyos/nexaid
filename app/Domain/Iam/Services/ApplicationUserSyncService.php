@@ -53,7 +53,7 @@ class ApplicationUserSyncService
      */
     public function syncUsers(Application $application, ?int $userId = null): array
     {
-        return $this->pushUsersToClient($application, $userId);
+        return $this->pushUsersByChunks($application, $userId);
     }
 
     /**
@@ -61,7 +61,7 @@ class ApplicationUserSyncService
      */
     public function forcePushUsers(Application $application, ?int $userId = null): array
     {
-        return $this->pushUsersToClient($application, $userId);
+        return $this->pushUsersByChunks($application, $userId);
     }
 
     /**
@@ -78,7 +78,8 @@ class ApplicationUserSyncService
     {
         $syncUrl = $this->buildPushUsersUrl($application, $application->app_key);
 
-        // Get base users query without loading all data
+        // Get base users query without loading all data.
+        // Use chunkById so large syncs do not pay growing OFFSET costs.
         $baseQuery = User::query()
             ->where(function ($q) use ($application, $userId) {
                 $q->whereHas('applicationRoles', function ($q2) use ($application) {
@@ -112,98 +113,74 @@ class ApplicationUserSyncService
             'skipped' => 0,
         ];
 
-        $offset = 0;
         $chunkNumber = 1;
 
         // Process users in smaller chunks
-        while ($offset < $totalUsers) {
-            Log::info('iam.push_users_chunk_processing', [
-                'app_key' => $application->app_key,
-                'chunk' => $chunkNumber,
-                'offset' => $offset,
-                'size' => $chunkSize,
-            ]);
+        $baseQuery
+            ->with([
+                'accessProfiles.roles' => function ($q) use ($application) {
+                    $q->where('iam_roles.application_id', $application->id);
+                },
+                'applicationRoles' => function ($q) use ($application) {
+                    $q->where('iam_user_application_roles.application_id', $application->id);
+                },
+                'unitKerjas:id,unit_name',
+            ])
+            ->chunkById($chunkSize, function ($users) use ($application, $syncUrl, &$allResults, &$chunkNumber, $totalUsers, $chunkSize) {
+                Log::info('iam.push_users_chunk_processing', [
+                    'app_key' => $application->app_key,
+                    'chunk' => $chunkNumber,
+                    'size' => $users->count(),
+                ]);
 
-            // Get only the needed data for this chunk (no N+1 queries)
-            $users = $baseQuery->clone()
-                ->with([
-                    'accessProfiles.roles' => function ($q) use ($application) {
-                        $q->where('iam_roles.application_id', $application->id);
-                    },
-                    'applicationRoles' => function ($q) use ($application) {
-                        $q->where('iam_user_application_roles.application_id', $application->id);
-                    },
-                    'unitKerjas:id,unit_name',
-                ])
-                ->offset($offset)
-                ->limit($chunkSize)
-                ->get()
-                ->map(function (User $user) use ($application) {
-                    // Calculate roles from already-loaded relationships
-                    $directRoles = $user->applicationRoles
-                        ->where('application_id', $application->id)
-                        ->pluck('slug')
-                        ->toArray();
+                $users = $users->map(function (User $user) use ($application) {
+                    return $this->buildCompactPushUserPayload($user, $application);
+                })->toArray();
 
-                    $profileRoles = $user->accessProfiles
-                        ->filter(function ($profile) {
-                            return $profile->is_active;
-                        })
-                        ->flatMap(function ($profile) use ($application) {
-                            return $profile->roles
-                                ->where('application_id', $application->id)
-                                ->pluck('slug');
-                        })
-                        ->toArray();
+                if (empty($users)) {
+                    return true;
+                }
 
-                    $roles = array_unique(array_merge($directRoles, $profileRoles));
+                $estimatedPayloadBytes = strlen(json_encode(['users' => $users]) ?: '');
+                Log::info('iam.push_users_chunk_payload_metrics', [
+                    'app_key' => $application->app_key,
+                    'chunk' => $chunkNumber,
+                    'user_count' => count($users),
+                    'payload_bytes' => $estimatedPayloadBytes,
+                    'avg_bytes_per_user' => count($users) > 0 ? (int) floor($estimatedPayloadBytes / count($users)) : 0,
+                ]);
 
-                    return [
-                        'id' => $user->id,
-                        'nip' => $user->nip,
-                        'email' => $user->email,
-                        'name' => $user->name,
-                        'status' => $user->status,
-                        'active' => $user->status === 'active',
-                        'unit_kerja' => $user->unitKerjas->pluck('unit_name')->toArray(),
-                        'roles' => array_values($roles),
-                    ];
-                })
-                ->toArray();
+                // Send this chunk to client
+                $chunkResult = $this->sendPushUsersPayload(
+                    $syncUrl,
+                    $application,
+                    $users,
+                    "chunk_{$chunkNumber}_of_" . ceil($totalUsers / $chunkSize)
+                );
 
-            if (empty($users)) {
-                break;
-            }
+                if (! $chunkResult['success']) {
+                    $allResults['success'] = false;
+                    $allResults['message'] = "Chunk {$chunkNumber} failed: " . $chunkResult['error'];
 
-            // Send this chunk to client
-            $chunkResult = $this->sendPushUsersPayload(
-                $syncUrl,
-                $application,
-                $users,
-                "chunk_{$chunkNumber}_of_" . ceil($totalUsers / $chunkSize)
-            );
+                    return false;
+                }
 
-            if (!$chunkResult['success']) {
-                $allResults['success'] = false;
-                $allResults['message'] = "Chunk {$chunkNumber} failed: " . $chunkResult['error'];
-                break;
-            }
+                // Accumulate results
+                $allResults['iam_users'] = array_merge($allResults['iam_users'], $users);
+                $allResults['created'] += $chunkResult['created'] ?? 0;
+                $allResults['updated'] += $chunkResult['updated'] ?? 0;
+                $allResults['deleted'] += $chunkResult['deleted'] ?? 0;
+                $allResults['skipped'] += $chunkResult['skipped'] ?? 0;
 
-            // Accumulate results
-            $allResults['iam_users'] = array_merge($allResults['iam_users'], $users);
-            $allResults['created'] += $chunkResult['created'] ?? 0;
-            $allResults['updated'] += $chunkResult['updated'] ?? 0;
-            $allResults['deleted'] += $chunkResult['deleted'] ?? 0;
-            $allResults['skipped'] += $chunkResult['skipped'] ?? 0;
+                $chunkNumber++;
 
-            $offset += $chunkSize;
-            $chunkNumber++;
+                // Optional: Add small delay between chunks to avoid overwhelming client
+                if (($chunkNumber - 1) * $chunkSize < $totalUsers) {
+                    usleep(100000); // 100ms delay between chunks
+                }
 
-            // Optional: Add small delay between chunks to avoid overwhelming client
-            if ($offset < $totalUsers) {
-                usleep(100000); // 100ms delay between chunks
-            }
-        }
+                return true;
+            });
 
         Log::info('iam.push_users_chunked_complete', [
             'app_key' => $application->app_key,
@@ -226,6 +203,15 @@ class ApplicationUserSyncService
         try {
             $payload = ['users' => $users];
             $jsonBody = json_encode($payload);
+
+            if ($jsonBody !== false) {
+                Log::info('iam.push_users_payload_size', [
+                    'context' => $context,
+                    'app_key' => $application->app_key,
+                    'user_count' => count($users),
+                    'payload_bytes' => strlen($jsonBody),
+                ]);
+            }
 
             if (! config('iam.backchannel_verify', true)) {
                 $response = Http::timeout(50)
@@ -593,10 +579,42 @@ class ApplicationUserSyncService
                 'id' => $unitKerja->id,
                 'slug' => $unitKerja->slug,
                 'unit_name' => $unitKerja->unit_name,
-                'description' => $unitKerja->description,
             ])
             ->values()
             ->toArray();
+    }
+
+    /**
+     * Build a compact payload for client sync pushes.
+     * This omits redundant fields and keeps only what the client sync flow needs.
+     */
+    protected function buildCompactPushUserPayload(User $user, Application $application): array
+    {
+        $directRoles = $user->applicationRoles
+            ->where('application_id', $application->id)
+            ->pluck('slug')
+            ->toArray();
+
+        $profileRoles = $user->accessProfiles
+            ->filter(function ($profile) {
+                return $profile->is_active;
+            })
+            ->flatMap(function ($profile) use ($application) {
+                return $profile->roles
+                    ->where('application_id', $application->id)
+                    ->pluck('slug');
+            })
+            ->toArray();
+
+        return [
+            'id' => $user->id,
+            'nip' => $user->nip,
+            'email' => $user->email,
+            'name' => $user->name,
+            'status' => $user->status,
+            'unit_kerja' => $user->unitKerjas->pluck('unit_name')->toArray(),
+            'roles' => array_values(array_unique(array_merge($directRoles, $profileRoles))),
+        ];
     }
 
     /**

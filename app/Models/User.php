@@ -6,6 +6,7 @@ namespace App\Models;
 
 use App\Domain\Iam\Models\Application;
 use App\Domain\Iam\Models\Role;
+use App\Services\Sync\BatchedSyncScheduler;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -75,7 +76,7 @@ class User extends Authenticatable
 
     public function recordLastLogin(): bool
     {
-        $this->last_login_at = now();
+        $this->last_login_at = Carbon::now();
         $this->last_logout_at = null;
 
         $saved = $this->save();
@@ -101,7 +102,7 @@ class User extends Authenticatable
 
     public function recordLastLogout(): bool
     {
-        $this->last_logout_at = now();
+        $this->last_logout_at = Carbon::now();
 
         $saved = $this->save();
 
@@ -606,6 +607,6 @@ class User extends Authenticatable
             'timestamp' => now()->toDateTimeString(),
         ]);
 
-        \App\Jobs\SyncApplicationUsers::dispatch([], [], [], $this->id);
+        BatchedSyncScheduler::scheduleUser($this->id);
     }
 }
