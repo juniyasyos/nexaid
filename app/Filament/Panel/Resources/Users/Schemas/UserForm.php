@@ -9,6 +9,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
+use Filament\Schemas\Components\Html;
 use Filament\Schemas\Components\Grid;
 use Filament\Schemas\Components\Group;
 use Filament\Schemas\Components\Section;
@@ -183,10 +184,6 @@ class UserForm
                             ->columnSpanFull()
                             ->description('Unggah avatar dan tanda tangan digital pengguna.')
                             ->schema([
-                                TextInput::make('avatar_url')
-                                    ->label('Avatar URL'),
-                                TextInput::make('ttd_url')
-                                    ->label('Tanda Tangan URL'),
                                 Grid::make(2)
                                     ->schema([
                                         FileUpload::make('avatar_url')
@@ -224,6 +221,24 @@ class UserForm
                                     ->label('Diupdate')
                                     ->disabled()
                                     ->visible(fn($operation) => $operation === 'edit'),
+                            ]),
+
+                        Section::make('JSON Data User')
+                            ->description('Menampilkan seluruh data user dalam bentuk JSON mentah untuk inspeksi cepat.')
+                            ->hidden(fn($operation) => $operation === 'create')
+                            ->schema([
+                                Html::make(function (?User $record): string {
+                                    $payload = $record?->toArray() ?? [];
+
+                                    return '<div class="rounded-xl border border-gray-200 bg-gray-50 p-4 text-sm dark:border-gray-700 dark:bg-gray-900/60">'
+                                        . '<pre class="max-h-96 overflow-auto whitespace-pre-wrap break-all font-mono text-xs leading-6 text-gray-800 dark:text-gray-200">'
+                                        . e(json_encode(
+                                            $payload,
+                                            JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE,
+                                        ))
+                                        . '</pre>'
+                                        . '</div>';
+                                }),
                             ]),
                     ]),
             ]);
