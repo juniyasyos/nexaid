@@ -99,6 +99,7 @@ class UsersTable
                             ->icon('heroicon-m-building-office-2')
                             ->color('gray')
                             ->size('md')
+                            ->sortable()
                             ->formatStateUsing(fn(?string $state) => strtoupper($state ?? '-'))
                             ->getStateUsing(function (User $record): ?string {
                                 $unitKerjas = $record->relationLoaded('unitKerjas')
@@ -144,6 +145,7 @@ class UsersTable
                             ->label('Login Aktif')
                             ->badge()
                             ->size('sm')
+                            ->sortable()
                             ->color(fn(User $record) => app(UserSessionStateResolver::class)->getStatusColor($record))
                             ->getStateUsing(fn(User $record) => app(UserSessionStateResolver::class)->getStatus($record))
                             ->description(fn(User $record) => app(UserSessionStateResolver::class)->getDescription($record))

@@ -95,10 +95,12 @@ class SyncApplicationUsers implements ShouldQueue
             'sync_mode' => $this->syncMode,
         ]);
 
-        // determine which apps should be synced
-        $appsQuery = Application::query();
+        // determine which apps should be synced (skip disabled apps)
+        $appsQuery = Application::query()->where('enabled', true);
 
         if ($this->application) {
+            // still respect global enabled flag; if the application is disabled
+            // it will be skipped and no work will be performed.
             $appsQuery->where('id', $this->application->id);
         } elseif (! empty($this->applicationIds)) {
             $appsQuery->whereIn('id', $this->applicationIds);

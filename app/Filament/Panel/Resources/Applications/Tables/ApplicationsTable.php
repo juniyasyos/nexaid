@@ -155,6 +155,27 @@ class ApplicationsTable
                     ->label('Data Terhapus'),
             ])
             ->recordActions([
+                Action::make('goToApp')
+                    ->label('Akses Aplikasi')
+                    ->disabled(fn($record) => !$record->enabled)
+                    ->action(function (Application $record) {
+                        $redirectUri = is_array($record->redirect_uris)
+                            ? ($record->redirect_uris[0] ?? null)
+                            : $record->redirect_uris;
+
+                        if (! is_string($redirectUri) || $redirectUri === '') {
+                            Notification::make()
+                                ->title('Redirect URL belum dikonfigurasi')
+                                ->body('Aplikasi ini belum memiliki redirect URI yang valid.')
+                                ->danger()
+                                ->send();
+
+                            return null;
+                        }
+
+                        return redirect()->away($redirectUri);
+                    })
+                    ->icon('heroicon-m-arrow-top-right-on-square'),
                 ActionGroup::make([
                     ViewAction::make()
                         ->label('Lihat Detail')

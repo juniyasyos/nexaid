@@ -7,7 +7,6 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Support\Facades\Redis;
 use Illuminate\Support\Facades\Log;
 
 class ProcessBatchedUserSyncs implements ShouldQueue
@@ -17,18 +16,15 @@ class ProcessBatchedUserSyncs implements ShouldQueue
     public function handle(): void
     {
         try {
-            // Atomically read and clear the pending set
-            $key = 'pending_user_syncs';
-
-            $userIds = Redis::smembers($key) ?: [];
+            $cache = $this->cache();
+            $userIds = $cache->pull('pending_user_syncs', []);
 
             if (empty($userIds)) {
                 Log::debug('process_batched_user_syncs: nothing to process');
                 return;
             }
 
-            // Clear the set so new changes are collected for the next window
-            Redis::del($key);
+            $cache->forget('pending_user_sync_scheduled');
 
             $unique = array_values(array_unique(array_map('intval', $userIds)));
 
@@ -44,5 +40,10 @@ class ProcessBatchedUserSyncs implements ShouldQueue
         } catch (\Throwable $e) {
             Log::error('process_batched_user_syncs_failed', ['error' => $e->getMessage()]);
         }
+    }
+
+    protected function cache()
+    {
+        return \Illuminate\Support\Facades\Cache::store((string) config('iam.sync_batch.cache_store', config('cache.default')));
     }
 }

@@ -2,10 +2,10 @@
 
 namespace App\Filament\Panel\Resources\Users\Pages;
 
-use App\Actions\ImportUsersFromJsonAction;
 use App\Domain\Iam\Models\AccessProfile;
 use App\Domain\Iam\Models\Application;
 use App\Filament\Panel\Resources\Users\UserResource;
+use App\Jobs\ImportUsersFromJsonJob;
 use App\Jobs\SyncApplicationUsers;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
@@ -18,6 +18,7 @@ use Filament\Resources\Pages\ListRecords;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use RuntimeException;
 use Throwable;
 
@@ -35,8 +36,7 @@ class ListUsers extends ListRecords
     {
         return [
             $this->makeCreateUserAction(),
-            $this->makeImportUsersAction(),
-            $this->makeSyncUsersAction(),
+            $this->makeImportUsersAction()
         ];
     }
 
@@ -52,10 +52,10 @@ class ListUsers extends ListRecords
     {
         return Action::make('importFromJson')
             ->label('Import Pengguna (JSON)')
-            ->icon('heroicon-m-arrow-down-tray')
+            ->icon('heroicon-m-arrow-up-tray')
             ->color('success')
             ->schema($this->getImportUsersSchema())
-            ->action(fn (array $data, ImportUsersFromJsonAction $importAction) => $this->handleImportUsers($data, $importAction))
+            ->action(fn(array $data) => $this->handleImportUsers($data))
             ->modalHeading('Import Pengguna dari JSON')
             ->modalDescription('Upload file JSON berisi data pengguna untuk di-import.')
             ->modalSubmitActionLabel('Import')
@@ -80,19 +80,31 @@ class ListUsers extends ListRecords
         ];
     }
 
-    protected function handleImportUsers(array $data, ImportUsersFromJsonAction $importAction): void
+    protected function handleImportUsers(array $data): void
     {
         try {
-            Log::debug('=== Import JSON Action Started ===');
+            Log::debug('=== Import JSON Job Dispatch Started ===');
 
             $jsonContent = $this->readJsonUpload($data['json_file'] ?? null);
-            $usersData = $this->decodeJsonUsers($jsonContent);
+            $filePath = $this->storeImportPayload($jsonContent);
+            $userId = auth()->id();
 
-            $result = $importAction->execute($usersData);
+            if (!$userId) {
+                throw new RuntimeException('User tidak terautentikasi untuk menjalankan import.');
+            }
 
-            $this->sendImportResultNotification($result);
+            ImportUsersFromJsonJob::dispatch($filePath, $userId);
 
-            Log::info('Import JSON - Completed', $this->getImportLogContext($result));
+            Notification::make()
+                ->title('Import Pengguna Dijadwalkan')
+                ->body('File JSON berhasil disimpan. Import akan diproses di background worker.')
+                ->success()
+                ->send();
+
+            Log::info('Import JSON - Dispatched to job', [
+                'file_path' => $filePath,
+                'user_id' => $userId,
+            ]);
         } catch (Throwable $e) {
             Log::error('=== Import JSON Action Failed ===', [
                 'exception' => $e::class,
@@ -107,7 +119,7 @@ class ListUsers extends ListRecords
 
     protected function readJsonUpload(mixed $file): string
     {
-        if (! $file) {
+        if (!$file) {
             throw new RuntimeException('File JSON tidak ditemukan.');
         }
 
@@ -125,7 +137,7 @@ class ListUsers extends ListRecords
     protected function readUploadedFileObject(object $file): string
     {
         foreach (['getRealPath', '__toString'] as $method) {
-            if (! method_exists($file, $method)) {
+            if (!method_exists($file, $method)) {
                 continue;
             }
 
@@ -152,17 +164,6 @@ class ListUsers extends ListRecords
         }
 
         throw new RuntimeException("File JSON tidak ditemukan pada path: {$path}");
-    }
-
-    protected function decodeJsonUsers (string $jsonContent): array
-    {
-        $usersData = json_decode($jsonContent, true);
-
-        if (! is_array($usersData)) {
-            throw new RuntimeException('Format JSON tidak valid: ' . json_last_error_msg());
-        }
-
-        return $usersData;
     }
 
     protected function sendImportResultNotification(array $result): void
@@ -212,11 +213,11 @@ class ListUsers extends ListRecords
     {
         $warnings = [];
 
-        if (! empty($result['warnings']['access_profiles_not_found'])) {
+        if (!empty($result['warnings']['access_profiles_not_found'])) {
             $warnings[] = 'Access profile tidak ditemukan: ' . implode(', ', $result['warnings']['access_profiles_not_found']);
         }
 
-        if (! empty($result['warnings']['unit_kerjas_not_found'])) {
+        if (!empty($result['warnings']['unit_kerjas_not_found'])) {
             $warnings[] = 'Unit kerja tidak ditemukan: ' . implode(', ', $result['warnings']['unit_kerjas_not_found']);
         }
 
@@ -232,7 +233,7 @@ class ListUsers extends ListRecords
         }
 
         $errors = collect($result['errors'])
-            ->map(fn (array $error) => sprintf(
+            ->map(fn(array $error) => sprintf(
                 'Baris %d (%s): %s',
                 $error['row'] ?? 0,
                 $error['nip'] ?? '-',
@@ -253,87 +254,21 @@ class ListUsers extends ListRecords
         ];
     }
 
-    protected function makeSyncUsersAction(): Action
-    {
-        return Action::make('syncFromApps')
-            ->label('Sinkron pengguna')
-            ->icon('heroicon-m-arrow-path')
-            ->color('primary')
-            ->authorize(fn () => false)
-            ->schema($this->getSyncUsersSchema())
-            ->action(fn (array $data) => $this->handleSyncUsers($data));
-    }
-
-    protected function getSyncUsersSchema(): array
-    {
-        return [
-            CheckboxList::make('application_ids')
-                ->label('Aplikasi')
-                ->options(Application::query()->pluck('name', 'id')->toArray())
-                ->columns(2)
-                ->required(),
-
-            CheckboxList::make('profile_ids')
-                ->label('Role Bundles')
-                ->options(AccessProfile::active()->pluck('name', 'id')->toArray())
-                ->columns(2)
-                ->required(),
-
-            Select::make('sync_mode')
-                ->label('Mode sinkron')
-                ->options([
-                    'auto' => 'Otomatis',
-                    'manual' => 'Manual',
-                ])
-                ->default('auto')
-                ->required(),
-        ];
-    }
-
-    protected function handleSyncUsers(array $data): void
-    {
-        $applicationIds = $data['application_ids'] ?? [];
-        $profileIds = $data['profile_ids'] ?? [];
-
-        if (empty($applicationIds)) {
-            $this->notifyWarning('Tidak ada aplikasi dipilih');
-            return;
-        }
-
-        if (empty($profileIds)) {
-            $this->notifyWarning('Tidak ada role bundle dipilih');
-            return;
-        }
-
-        SyncApplicationUsers::dispatch($applicationIds, $profileIds);
-
-        $this->notifySuccess('Job sinkron pengguna dijadwalkan');
-    }
-
-    protected function notifySuccess(string $title, ?string $body = null): void
-    {
-        Notification::make()
-            ->title($title)
-            ->body($body)
-            ->success()
-            ->send();
-    }
-
-    protected function notifyWarning(string $title, ?string $body = null): void
-    {
-        Notification::make()
-            ->title($title)
-            ->body($body)
-            ->warning()
-            ->send();
-    }
-
-    protected function notifyDanger(string $title, ?string $body = null): void
+    protected function notifyDanger(string $title, string $body): void
     {
         Notification::make()
             ->title($title)
             ->body($body)
             ->danger()
             ->send();
+    }
+
+    protected function storeImportPayload(string $jsonContent): string
+    {
+        $path = 'imports/users/' . now()->format('Y/m/d') . '/' . (string) Str::uuid() . '.json';
+
+        Storage::disk('s3')->put($path, $jsonContent);
+
+        return $path;
     }
 }

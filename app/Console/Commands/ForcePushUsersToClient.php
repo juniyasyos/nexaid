@@ -29,7 +29,8 @@ class ForcePushUsersToClient extends Command
         $appIds = array_filter((array) $this->option('app'));
         $userId = $this->option('user_id');
 
-        $query = Application::query();
+        // Only consider enabled applications
+        $query = Application::query()->where('enabled', true);
         if (! empty($appIds)) {
             $query->whereIn('id', $appIds);
             $this->info('Limiting to applications: ' . implode(', ', $appIds));

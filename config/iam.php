@@ -257,6 +257,22 @@ return [
     'user_sync_password_field' => env('IAM_USER_SYNC_PASSWORD_FIELD', false),
 
     /*
+    |------------------------------------------------------------------------
+    | Batched User Sync
+    |------------------------------------------------------------------------
+    |
+    | Controls how the user sync batching queue stores pending user IDs.
+    | The default uses the configured cache store so the implementation does
+    | not depend directly on Redis. Set the cache store to a shared driver
+    | (for example `redis`) in production if you need cross-process batching.
+    */
+    'sync_batch' => [
+        'enabled' => env('IAM_SYNC_BATCH_ENABLED', true),
+        'cache_store' => env('IAM_SYNC_BATCH_CACHE_STORE', env('CACHE_STORE', 'file')),
+        'delay_seconds' => env('IAM_SYNC_BATCH_DELAY_SECONDS', 5),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | Default User Roles
     |--------------------------------------------------------------------------
