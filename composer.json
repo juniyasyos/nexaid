@@ -1,13 +1,25 @@
 {
     "$schema": "https://getcomposer.org/schema.json",
-    "name": "laravel/vue-starter-kit",
+    "name": "juniyasyos/nexaid",
     "type": "project",
-    "description": "The skeleton application for the Laravel framework.",
+    "description": "Enterprise Identity and Access Management (IAM) platform with Single Sign-On (SSO), centralized authentication, role-based access control, and application federation.",
     "keywords": [
+        "iam",
+        "identity-management",
+        "access-management",
+        "sso",
+        "authentication",
+        "authorization",
+        "jwt",
+        "rbac",
         "laravel",
-        "framework"
+        "enterprise"
     ],
     "license": "proprietary",
+    "homepage": "https://nexaid.id",
+    "support": {
+        "email": "ahmadilyasdahlan@gmail.com"
+    },
     "require": {
         "php": "^8.2",
         "alkoumi/filament-image-radio-button": "^2.0",
