@@ -1,0 +1,14 @@
+Proprietary License (All Rights Reserved)
+
+Copyright (c) 2026 Ahmad Ilyas
+
+All Rights Reserved.
+
+This software is proprietary and confidential.
+
+No permission is granted to use, copy, modify, merge,
+publish, distribute, sublicense, sell, or create derivative
+works from this software without prior written permission
+from the copyright holder.
+
+Unauthorized use is strictly prohibited.

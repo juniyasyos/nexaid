@@ -5,7 +5,7 @@ Enterprise Identity & Access Management Platform.
 <p align="left">
   <img alt="Laravel" src="https://img.shields.io/badge/Laravel-12-FF2D20?logo=laravel&logoColor=white">
   <img alt="PHP" src="https://img.shields.io/badge/PHP-8.2-777BB4?logo=php&logoColor=white">
-  <img alt="License" src="https://img.shields.io/badge/License-MIT-111827">
+  <img alt="License" src="https://img.shields.io/badge/License-Proprietary-111827">
 </p>
 
 ---
