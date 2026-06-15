@@ -98,7 +98,7 @@ class ApplicationForm
                                                 ->label('System Bundle')
                                                 ->default(false)
                                                 ->helperText('If enabled, this bundle is considered critical and usually cannot be deleted or modified by regular users.'),
-                                            Toggle::make('is_active')
+                                            Toggle::make('enabled')
                                                 ->label('Active')
                                                 ->default(true)
                                                 ->helperText('Disable to prevent new user assignments while keeping existing assignments.'),
