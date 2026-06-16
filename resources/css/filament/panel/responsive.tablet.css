@@ -12,7 +12,6 @@
   .fi-header-heading{ font-size:var(--fluid-3); }
   .fi-simple-header-heading{ font-size:var(--fluid-2); }
   .fi-section > .fi-section-header,
-  .fi-section > .fi-section-content-ctn{ @apply px-5 py-4; }
   .fi-btn{ @apply py-1.5 px-3.5 text-[0.95rem]; }
   .fi-btn .fi-btn-label{ @apply text-[0.95rem]; }
   .fi-page .fi-ta-table th, .fi-page .fi-ta-table td{ font-size:.9375rem; }

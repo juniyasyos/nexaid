@@ -54,7 +54,7 @@
     /* Sections/Card padding */
     .fi-section>.fi-section-header,
     .fi-section>.fi-section-content-ctn {
-        @apply px-4 py-3;
+        @apply px-4 py-3 border-transparent;
     }
 
     /* Buttons compact & tidak terlalu rounded */

@@ -250,7 +250,7 @@
 
 /* Pagination bg */
 .fi-pagination {
-  @apply bg-white dark:bg-[var(--ds-dark-bg-secondary-color)];
+  @apply bg-transparent border-transparent;
 }
 
 /* Action columns - Better responsive behavior */
