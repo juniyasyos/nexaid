@@ -185,9 +185,19 @@ export default function Dashboard({ user, applications: appsFromProps = [], acce
                     {/* Left Column: Apps */}
                     <main className="flex-1 px-[clamp(1rem,4vw,4rem)] py-[clamp(1.5rem,4vh,2.5rem)] flex flex-col min-w-0 overflow-y-auto">
                         <div className="mb-5 animate-slideUp w-full max-w-[520px] mx-auto lg:mx-0 text-center lg:text-left shrink-0">
-                            <h2 className={`text-[clamp(1.25rem,2vw+0.4rem,1.875rem)] font-bold mb-2 tracking-tight leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'}`}>
-                                Selamat datang kembali, <span className={theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'}>{user?.name || 'admin'}</span>
-                            </h2>
+                            <div className="mb-2">
+                                <p className={`text-sm font-medium ${theme === 'dark' ? 'text-slate-400' : 'text-slate-500'
+                                    }`}>
+                                    Selamat datang kembali
+                                </p>
+
+                                <h2 className={`text-[clamp(1.5rem,2.4vw,2rem)] font-bold tracking-tight leading-tight ${theme === 'dark' ? 'text-white' : 'text-slate-900'
+                                    }`}>
+                                    <span className={theme === 'dark' ? 'text-cyan-400' : 'text-blue-600'}>
+                                        {user?.name || 'admin'}
+                                    </span>
+                                </h2>
+                            </div>
 
                             <p className={`text-xs ${theme === 'dark' ? 'text-slate-300' : 'text-slate-600'}`}>
                                 Pilih aplikasi yang ingin Anda akses hari ini.
@@ -279,7 +289,7 @@ export default function Dashboard({ user, applications: appsFromProps = [], acce
                         </div>
 
                         <footer className={`py-6 text-xs mt-auto flex justify-between items-center text-center lg:text-left shrink-0 ${theme === 'dark' ? 'text-slate-500 border-white/10' : 'text-slate-500 border-slate-200'}`}>
-                            <span>© {new Date().getFullYear()} RS Citra Husada · Portal Terpadu</span>
+                            <span>© {new Date().getFullYear()} NEXA-ID · Portal Terpadu</span>
                             <span className="hidden sm:inline-block">Versi 2.0.0</span>
                         </footer>
                     </main>

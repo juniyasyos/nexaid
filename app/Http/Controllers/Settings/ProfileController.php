@@ -18,9 +18,41 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        $user = clone $request->user();
+        
+        $user->load('accessProfiles');
+        
+        $effectiveRoles = $request->user()->effectiveApplicationRoles()->with('application')->get();
+        
+        $appsMap = [];
+        foreach ($effectiveRoles as $role) {
+            $app = $role->application;
+            if (!$app) continue;
+            
+            if (!isset($appsMap[$app->app_key])) {
+                $appsMap[$app->app_key] = [
+                    'app_key' => $app->app_key,
+                    'name' => $app->name,
+                    'description' => $app->description,
+                    'enabled' => $app->enabled,
+                    'roles' => [],
+                ];
+            }
+            
+            $appsMap[$app->app_key]['roles'][] = [
+                'name' => $role->name,
+                'slug' => $role->slug,
+            ];
+        }
+        
+        $userData = $user->toArray();
+        $userData['applications'] = array_values($appsMap);
+        $userData['access_profiles'] = $user->accessProfiles->toArray();
+
         return Inertia::render('settings/Profile', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => $request->session()->get('status'),
+            'user' => $userData,
         ]);
     }
 

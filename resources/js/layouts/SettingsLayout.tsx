@@ -11,17 +11,23 @@ interface SettingsLayoutProps {
 
 export default function SettingsLayout({ children, title }: SettingsLayoutProps) {
     const { props } = usePage();
-    const user = props.auth?.user as UserType;
+    const user = (props.user || props.auth?.user) as UserType;
     const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
     const toggleTheme = () => setTheme(prev => prev === 'dark' ? 'light' : 'dark');
 
     return (
-        <div className={`w-screen overflow-x-hidden font-sans antialiased relative flex flex-col transition-colors duration-500 ${theme === 'dark' ? 'bg-[#0b1226] text-slate-100 selection:bg-cyan-400/30 selection:text-white' : 'bg-slate-50 text-slate-800 selection:bg-blue-400/30 selection:text-blue-900'}`}>
+        <div className={`relative isolate min-h-dvh w-full overflow-x-hidden font-sans antialiased flex flex-col transition-colors duration-500 ${theme === 'dark'
+            ? 'bg-[#0b1226] text-slate-100 selection:bg-cyan-400/30 selection:text-white'
+            : 'bg-slate-50 text-slate-800 selection:bg-blue-400/30 selection:text-blue-900'
+            }`}>
             <style>{KEYFRAME_STYLES}</style>
-            
+
             {/* Background elements - similar to dashboard */}
-            <div className="fixed inset-0 pointer-events-none transition-opacity duration-500" style={{ opacity: theme === 'dark' ? 1 : 0.5 }}>
+            <div
+                className="absolute inset-0 -z-10 min-h-full w-full pointer-events-none transition-opacity duration-500"
+                style={{ opacity: theme === 'dark' ? 1 : 0.5 }}
+            >
                 <svg className="absolute inset-0 h-full w-full" viewBox="0 0 800 1000" preserveAspectRatio="xMidYMid slice">
                     <defs>
                         <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
@@ -54,23 +60,20 @@ export default function SettingsLayout({ children, title }: SettingsLayoutProps)
             {/* Header */}
             <header className={`h-[64px] lg:h-[72px] shrink-0 px-4 sm:px-6 lg:px-8 flex items-center z-40 border-b backdrop-blur-md transition-colors duration-300 ${theme === 'dark' ? 'bg-white/5 border-white/10' : 'bg-white/70 border-slate-200 shadow-sm'}`}>
                 <div className="w-full flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                        <Link href="/dashboard" className={`p-2 rounded-xl border transition-colors ${theme === 'dark' ? 'bg-white/5 hover:bg-white/10 border-white/10 text-slate-300 hover:text-white' : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-600 hover:text-slate-900 shadow-sm'}`}>
-                            <ChevronLeft className="w-5 h-5" />
-                        </Link>
-                        <div className="flex items-center gap-3">
-                            <div className={`flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center rounded-xl ring-1 shadow-lg relative overflow-hidden ${theme === 'dark' ? 'bg-white/10 ring-white/20' : 'bg-blue-50 ring-blue-100'}`}>
-                                <div className={`absolute inset-0 z-0 ${theme === 'dark' ? 'bg-gradient-to-br from-cyan-400/20 to-blue-500/20' : 'bg-gradient-to-br from-blue-400/10 to-cyan-500/10'}`}></div>
-                                <Hospital className={`h-4 w-4 lg:h-5 lg:w-5 relative z-10 ${theme === 'dark' ? 'text-cyan-300' : 'text-blue-600'}`} />
-                            </div>
-                            <div>
-                                <h1 className={`text-sm lg:text-base font-bold tracking-wide ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>Single Sign-On</h1>
-                            </div>
+                    <div className="flex items-center gap-3">
+                        <div className={`flex h-9 w-9 lg:h-10 lg:w-10 items-center justify-center rounded-xl ring-1 shadow-lg relative overflow-hidden ${theme === 'dark' ? 'bg-white/10 ring-white/20' : 'bg-blue-50 ring-blue-100'}`}>
+                            <div className={`absolute inset-0 z-0 ${theme === 'dark' ? 'bg-gradient-to-br from-cyan-400/20 to-blue-500/20' : 'bg-gradient-to-br from-blue-400/10 to-cyan-500/10'}`}></div>
+                            <Hospital className={`h-4 w-4 lg:h-5 lg:w-5 relative z-10 ${theme === 'dark' ? 'text-cyan-300' : 'text-blue-600'}`} />
+                        </div>
+                        <div>
+                            <h1 className={`text-sm lg:text-base font-bold tracking-wide ${theme === 'dark' ? 'text-white' : 'text-slate-800'}`}>NEXA ID</h1>
+                            <p className={`text-xs hidden sm:block ${theme === 'dark' ? 'text-cyan-200/70' : 'text-slate-500'}`}>Enterprise Identity and Access Management (IAM) platform with Single Sign-On (SSO)</p>
                         </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-3">
-                        <button onClick={toggleTheme} className={`flex items-center justify-center w-9 h-9 rounded-full transition-colors border ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-cyan-300' : 'bg-white border-slate-200 hover:bg-slate-50 text-blue-600 shadow-sm'}`}>
+                        {/* Theme Toggle (Desktop) */}
+                        <button onClick={toggleTheme} className={`hidden lg:flex items-center justify-center w-8 h-8 rounded-full transition-colors border ${theme === 'dark' ? 'bg-white/5 border-white/10 hover:bg-white/10 text-cyan-300' : 'bg-white border-slate-200 hover:bg-slate-50 text-blue-600 shadow-sm'}`}>
                             {theme === 'dark' ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
                         </button>
                     </div>

@@ -14,7 +14,7 @@ interface ProfileProps {
 
 export default function Profile(props: ProfileProps) {
     const theme = props.theme || 'dark';
-    const authUser = props.user!; 
+    const authUser = props.user!;
     const isDark = theme === 'dark';
 
     // Profile Form
@@ -52,22 +52,20 @@ export default function Profile(props: ProfileProps) {
     return (
         <div className="flex flex-col md:flex-row gap-5 max-w-7xl mx-auto items-start">
             <Head title="Profil Akun" />
-            
+
             {/* ─── LEFT SIDEBAR ────────────────────────────────────── */}
-            <div className={`w-full md:w-72 shrink-0 flex flex-col gap-4 p-5 rounded-2xl border shadow-sm ${
-                isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
-            }`}>
-                
+            <div className={`w-full md:w-72 shrink-0 flex flex-col gap-4 p-5 rounded-2xl border shadow-sm ${isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'
+                }`}>
+
                 {/* Avatar & Identitas Singkat */}
                 <div className="flex flex-col items-center text-center">
-                    <div className={`w-20 h-20 rounded-xl flex items-center justify-center border shadow-inner mb-3 ${
-                        isDark 
-                            ? 'bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/20' 
+                    <div className={`w-20 h-20 rounded-xl flex items-center justify-center border shadow-inner mb-3 ${isDark
+                            ? 'bg-gradient-to-br from-cyan-500/10 to-blue-500/10 border-cyan-500/20'
                             : 'bg-gradient-to-br from-blue-50 to-cyan-50 border-blue-200'
-                    }`}>
+                        }`}>
                         <User className={`w-10 h-10 ${isDark ? 'text-cyan-400' : 'text-blue-500'}`} />
                     </div>
-                    
+
                     <h2 className={`text-base font-bold tracking-tight leading-tight ${isDark ? 'text-white' : 'text-slate-900'}`}>
                         {authUser?.name}
                     </h2>
@@ -83,16 +81,14 @@ export default function Profile(props: ProfileProps) {
                     <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Status</span>
                     <div className="flex items-center gap-1.5">
                         {authUser?.active !== false ? (
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase flex items-center gap-1.5 border ${
-                                isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase flex items-center gap-1.5 border ${isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                                }`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-emerald-400' : 'bg-emerald-500'}`} />
                                 Active
                             </span>
                         ) : (
-                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase flex items-center gap-1.5 border ${
-                                isDark ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-50 text-rose-600 border-rose-200'
-                            }`}>
+                            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase flex items-center gap-1.5 border ${isDark ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-50 text-rose-600 border-rose-200'
+                                }`}>
                                 <span className={`w-1.5 h-1.5 rounded-full ${isDark ? 'bg-rose-400' : 'bg-rose-500'}`} />
                                 Inactive
                             </span>
@@ -110,63 +106,51 @@ export default function Profile(props: ProfileProps) {
 
                 <div className={`border-t my-1 ${isDark ? 'border-white/10' : 'border-slate-100'}`} />
 
-                {/* Aplikasi List (Sidebar) */}
-                <div className="flex flex-col gap-2">
-                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>Aplikasi</span>
-                    {authUser?.applications && authUser.applications.length > 0 ? (
-                        <ul className="space-y-1.5">
-                            {authUser.applications.map((app: UserApplication, i: number) => (
-                                <li key={i} className="flex items-center gap-2">
-                                    <div className={`w-1 h-1 rounded-full ${isDark ? 'bg-cyan-500' : 'bg-blue-500'}`} />
-                                    <span className={`text-xs font-medium ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>{app.name}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    ) : (
-                        <p className={`text-xs ${isDark ? 'text-slate-600' : 'text-slate-400'}`}>Belum ada aplikasi.</p>
-                    )}
+                {/* Aplikasi Summary */}
+                <div className="flex flex-col gap-1">
+                    <span className={`text-[10px] font-bold uppercase tracking-wider ${isDark ? 'text-slate-500' : 'text-slate-400'}`}>
+                        Aplikasi
+                    </span>
+
+                    <div className={`flex items-center justify-between rounded-xl border px-3 py-2 ${isDark
+                            ? 'bg-white/[0.03] border-white/10'
+                            : 'bg-slate-50 border-slate-200'
+                        }`}>
+                        <span className={`text-xs font-semibold ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
+                            {authUser?.applications?.length || 0} aplikasi bisa diakses
+                        </span>
+
+                        <span className={`w-1.5 h-1.5 rounded-full ${(authUser?.applications?.length || 0) > 0
+                                ? (isDark ? 'bg-emerald-400' : 'bg-emerald-500')
+                                : (isDark ? 'bg-slate-500' : 'bg-slate-400')
+                            }`} />
+                    </div>
                 </div>
             </div>
 
             {/* ─── RIGHT MAIN CONTENT ────────────────────────────────────────────── */}
             <div className="flex-1 flex flex-col gap-5 w-full min-w-0">
-                
-                {/* Header Profile Main */}
-                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                    <div>
-                        <div className="flex items-center gap-3">
-                            <h1 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{authUser?.name}</h1>
-                            <span className={`text-[10px] px-2 py-0.5 rounded border font-bold uppercase ${
-                                authUser?.active !== false
-                                    ? (isDark ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' : 'bg-emerald-50 text-emerald-600 border-emerald-200')
-                                    : (isDark ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-50 text-rose-600 border-rose-200')
-                            }`}>
-                                {authUser?.active !== false ? 'Active' : 'Inactive'}
-                            </span>
-                        </div>
-                        <p className={`text-sm mt-0.5 ${isDark ? 'text-cyan-200/70' : 'text-blue-600/80'}`}>{authUser?.role || 'Pengguna Sistem'}</p>
-                    </div>
 
+                {/* Header Profile Main */}
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-end gap-4">
                     <div className="flex items-center gap-2 w-full sm:w-auto">
                         <button
                             onClick={() => ssoService.redirectToAdminPanel()}
-                            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all border ${
-                                isDark
+                            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all border ${isDark
                                     ? 'bg-white/5 border-white/10 text-white hover:bg-white/10'
                                     : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 shadow-sm'
-                            }`}
+                                }`}
                         >
                             <Settings className="w-3.5 h-3.5" />
                             Admin Panel
                         </button>
-                        
+
                         <button
                             onClick={logout}
-                            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all border ${
-                                isDark
+                            className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition-all border ${isDark
                                     ? 'bg-rose-500/10 border-rose-500/20 text-rose-400 hover:bg-rose-500/20'
                                     : 'bg-rose-50 border-rose-200 text-rose-600 hover:bg-rose-100'
-                            }`}
+                                }`}
                         >
                             <LogOut className="w-3.5 h-3.5" />
                             Keluar
@@ -178,7 +162,7 @@ export default function Profile(props: ProfileProps) {
 
                 {/* Grid 2 Column for Forms */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                    
+
                     {/* Account Info Form */}
                     <div className={`p-5 rounded-2xl border flex flex-col ${isDark ? 'bg-white/[0.02] border-white/10' : 'bg-white border-slate-200'}`}>
                         <h3 className={`text-sm font-bold flex items-center gap-2 mb-4 uppercase tracking-wider ${isDark ? 'text-slate-300' : 'text-slate-700'}`}>
@@ -194,9 +178,8 @@ export default function Profile(props: ProfileProps) {
                                         type="text"
                                         value={authUser?.nip || ''}
                                         disabled
-                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs font-mono opacity-60 cursor-not-allowed ${
-                                            isDark ? 'bg-black/20 border-white/10 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-600'
-                                        }`}
+                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs font-mono opacity-60 cursor-not-allowed ${isDark ? 'bg-black/20 border-white/10 text-slate-300' : 'bg-slate-100 border-slate-200 text-slate-600'
+                                            }`}
                                     />
                                 </div>
                             </div>
@@ -207,11 +190,10 @@ export default function Profile(props: ProfileProps) {
                                         type="text"
                                         value={profileForm.data.name}
                                         onChange={(e) => profileForm.setData('name', e.target.value)}
-                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${
-                                            isDark 
-                                                ? 'bg-black/20 border-white/10 text-white focus:border-cyan-500 focus:ring-cyan-500' 
+                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${isDark
+                                                ? 'bg-black/20 border-white/10 text-white focus:border-cyan-500 focus:ring-cyan-500'
                                                 : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-blue-500'
-                                        }`}
+                                            }`}
                                     />
                                     {profileForm.errors.name && <p className="text-[10px] text-rose-500 mt-1">{profileForm.errors.name}</p>}
                                 </div>
@@ -223,11 +205,10 @@ export default function Profile(props: ProfileProps) {
                                         type="email"
                                         value={profileForm.data.email}
                                         onChange={(e) => profileForm.setData('email', e.target.value)}
-                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${
-                                            isDark 
-                                                ? 'bg-black/20 border-white/10 text-white focus:border-cyan-500 focus:ring-cyan-500' 
+                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${isDark
+                                                ? 'bg-black/20 border-white/10 text-white focus:border-cyan-500 focus:ring-cyan-500'
                                                 : 'bg-white border-slate-300 text-slate-900 focus:border-blue-500 focus:ring-blue-500'
-                                        }`}
+                                            }`}
                                     />
                                     {profileForm.errors.email && <p className="text-[10px] text-rose-500 mt-1">{profileForm.errors.email}</p>}
                                 </div>
@@ -239,11 +220,10 @@ export default function Profile(props: ProfileProps) {
                                 <button
                                     type="submit"
                                     disabled={profileForm.processing || !profileForm.isDirty}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed border ${
-                                        isDark
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed border ${isDark
                                             ? 'bg-cyan-500/10 text-cyan-300 border-cyan-500/20 hover:bg-cyan-500/20'
                                             : 'bg-blue-50 text-blue-700 border-blue-200 hover:bg-blue-100'
-                                    }`}
+                                        }`}
                                 >
                                     Simpan Info
                                 </button>
@@ -266,11 +246,10 @@ export default function Profile(props: ProfileProps) {
                                         type="password"
                                         value={passwordForm.data.current_password}
                                         onChange={(e) => passwordForm.setData('current_password', e.target.value)}
-                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${
-                                            isDark 
-                                                ? 'bg-black/20 border-white/10 text-white focus:border-amber-500 focus:ring-amber-500' 
+                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${isDark
+                                                ? 'bg-black/20 border-white/10 text-white focus:border-amber-500 focus:ring-amber-500'
                                                 : 'bg-white border-slate-300 text-slate-900 focus:border-amber-500 focus:ring-amber-500'
-                                        }`}
+                                            }`}
                                     />
                                     {passwordForm.errors.current_password && <p className="text-[10px] text-rose-500 mt-1">{passwordForm.errors.current_password}</p>}
                                 </div>
@@ -282,11 +261,10 @@ export default function Profile(props: ProfileProps) {
                                         type="password"
                                         value={passwordForm.data.password}
                                         onChange={(e) => passwordForm.setData('password', e.target.value)}
-                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${
-                                            isDark 
-                                                ? 'bg-black/20 border-white/10 text-white focus:border-amber-500 focus:ring-amber-500' 
+                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${isDark
+                                                ? 'bg-black/20 border-white/10 text-white focus:border-amber-500 focus:ring-amber-500'
                                                 : 'bg-white border-slate-300 text-slate-900 focus:border-amber-500 focus:ring-amber-500'
-                                        }`}
+                                            }`}
                                     />
                                     {passwordForm.errors.password && <p className="text-[10px] text-rose-500 mt-1">{passwordForm.errors.password}</p>}
                                 </div>
@@ -298,11 +276,10 @@ export default function Profile(props: ProfileProps) {
                                         type="password"
                                         value={passwordForm.data.password_confirmation}
                                         onChange={(e) => passwordForm.setData('password_confirmation', e.target.value)}
-                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${
-                                            isDark 
-                                                ? 'bg-black/20 border-white/10 text-white focus:border-amber-500 focus:ring-amber-500' 
+                                        className={`w-full rounded-lg border px-3 py-1.5 text-xs focus:ring-1 focus:outline-none transition-all ${isDark
+                                                ? 'bg-black/20 border-white/10 text-white focus:border-amber-500 focus:ring-amber-500'
                                                 : 'bg-white border-slate-300 text-slate-900 focus:border-amber-500 focus:ring-amber-500'
-                                        }`}
+                                            }`}
                                     />
                                 </div>
                             </div>
@@ -313,11 +290,10 @@ export default function Profile(props: ProfileProps) {
                                 <button
                                     type="submit"
                                     disabled={passwordForm.processing || !passwordForm.isDirty}
-                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed border ${
-                                        isDark
+                                    className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 disabled:cursor-not-allowed border ${isDark
                                             ? 'bg-amber-500/10 text-amber-300 border-amber-500/20 hover:bg-amber-500/20'
                                             : 'bg-amber-50 text-amber-700 border-amber-200 hover:bg-amber-100'
-                                    }`}
+                                        }`}
                                 >
                                     Ubah Sandi
                                 </button>
@@ -332,7 +308,7 @@ export default function Profile(props: ProfileProps) {
                         <Shield className={`w-4 h-4 ${isDark ? 'text-purple-400' : 'text-purple-600'}`} />
                         Profil Akses
                     </h3>
-                    
+
                     {authUser?.access_profiles && authUser.access_profiles.length > 0 ? (
                         <div className={`border rounded-2xl overflow-hidden ${isDark ? 'border-white/10 bg-white/[0.01]' : 'border-slate-200 bg-white'}`}>
                             {authUser.access_profiles.map((profile: AccessProfile, idx) => (
@@ -341,9 +317,8 @@ export default function Profile(props: ProfileProps) {
                                         <div className="flex items-center gap-2 mb-1">
                                             <span className={`text-sm font-bold ${isDark ? 'text-white' : 'text-slate-900'}`}>{profile.name}</span>
                                             {profile.is_system && (
-                                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${
-                                                    isDark ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' : 'bg-purple-50 text-purple-700 border-purple-200'
-                                                }`}>
+                                                <span className={`px-1.5 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider border ${isDark ? 'bg-purple-500/10 text-purple-300 border-purple-500/20' : 'bg-purple-50 text-purple-700 border-purple-200'
+                                                    }`}>
                                                     System
                                                 </span>
                                             )}
@@ -373,7 +348,6 @@ export default function Profile(props: ProfileProps) {
                                 <thead>
                                     <tr className={`border-b text-[10px] uppercase tracking-wider ${isDark ? 'bg-black/20 border-white/10 text-slate-400' : 'bg-slate-50 border-slate-200 text-slate-500'}`}>
                                         <th className="py-2.5 px-4 font-bold">Aplikasi</th>
-                                        <th className="py-2.5 px-4 font-bold">Deskripsi</th>
                                         <th className="py-2.5 px-4 font-bold">Role Yang Dimiliki</th>
                                     </tr>
                                 </thead>
@@ -386,14 +360,12 @@ export default function Profile(props: ProfileProps) {
                                                     <span className={`ml-2 px-1.5 py-0.5 rounded text-[9px] uppercase border ${isDark ? 'bg-rose-500/10 text-rose-400 border-rose-500/20' : 'bg-rose-50 text-rose-600 border-rose-200'}`}>Offline</span>
                                                 )}
                                             </td>
-                                            <td className={`py-3 px-4 ${isDark ? 'text-slate-400' : 'text-slate-500'}`}>{app.description || '-'}</td>
                                             <td className="py-3 px-4">
                                                 {app.roles && app.roles.length > 0 ? (
                                                     <div className="flex flex-wrap gap-1.5">
                                                         {app.roles.map((r, i) => (
-                                                            <span key={i} className={`px-2 py-0.5 rounded border text-[10px] font-semibold ${
-                                                                isDark ? 'bg-teal-500/10 text-teal-300 border-teal-500/20' : 'bg-teal-50 text-teal-700 border-teal-200'
-                                                            }`}>
+                                                            <span key={i} className={`px-2 py-0.5 rounded border text-[10px] font-semibold ${isDark ? 'bg-teal-500/10 text-teal-300 border-teal-500/20' : 'bg-teal-50 text-teal-700 border-teal-200'
+                                                                }`}>
                                                                 {r.name}
                                                             </span>
                                                         ))}
