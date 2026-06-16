@@ -24,4 +24,4 @@ export {
 } from './constants';
 
 // Exports styles
-export { STYLES, KEYFRAME_STYLES } from './styles';
+export { KEYFRAME_STYLES } from './styles';

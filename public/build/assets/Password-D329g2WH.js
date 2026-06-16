@@ -1,1 +1,0 @@
-import{j as s}from"./app-Dh8vkgsL.js";function a(){return s.jsxs("div",{className:"p-6",children:[s.jsx("h1",{className:"text-3xl font-bold mb-6",children:"Change Password"}),s.jsx("div",{className:"bg-white rounded-lg shadow p-6",children:s.jsx("p",{className:"text-gray-600",children:"Password settings content goes here"})})]})}export{a as default};
