@@ -55,6 +55,7 @@ class TokenBuilder
             expiresAt: $now + $ttl,
             unit: $user->unit,
             employeeId: $user->employee_id ?? null,
+            type: 'access',
             extra: $extra
         );
     }
@@ -75,6 +76,38 @@ class TokenBuilder
     public function buildTokenForUser(User $user, array $extra = []): string
     {
         $claims = $this->buildClaimsForUser($user, $extra);
+
+        return $this->encode($claims);
+    }
+
+    /**
+     * Build and encode a refresh token for a user.
+     *
+     * @param  array<string, mixed>  $extra
+     */
+    public function buildRefreshTokenForUser(User $user, array $extra = []): string
+    {
+        $apps = $this->userRoleService->getAppsForUser($user);
+        $rolesByApp = $this->userRoleService->getRolesByAppForUser($user);
+
+        $now = time();
+        $ttl = config('iam.refresh_token_ttl', 86400 * 30); // 30 days
+
+        $claims = new TokenClaims(
+            userId: $user->id,
+            nip: $user->nip,
+            email: $user->email,
+            name: $user->name,
+            apps: $apps,
+            rolesByApp: $rolesByApp,
+            issuer: config('iam.issuer', config('app.url')),
+            issuedAt: $now,
+            expiresAt: $now + $ttl,
+            unit: $user->unit,
+            employeeId: $user->employee_id ?? null,
+            type: 'refresh',
+            extra: $extra
+        );
 
         return $this->encode($claims);
     }
@@ -175,22 +208,7 @@ class TokenBuilder
             // First try normal verify (includes signature check and expiry)
             $oldClaims = $this->verify($token);
         } catch (\Exception $verifyErr) {
-            $message = strtolower($verifyErr->getMessage());
-
-            // Only allow refresh when the token has expired.
-            // Do not refresh tokens that were revoked or invalid.
-            if (! str_contains($message, 'expired')) {
-                throw new \Exception('Token refresh denied: ' . $verifyErr->getMessage());
-            }
-
-            // If the token is expired but otherwise valid, decode the payload
-            // without enforcing expiry so we can issue a new token.
-            try {
-                $oldClaims = $this->decode($token);
-            } catch (\Exception $decodeErr) {
-                // If decode fails, try manual parsing as last resort
-                $oldClaims = $this->parseTokenPayload($token);
-            }
+            throw new \Exception('Token refresh denied: ' . $verifyErr->getMessage());
         }
 
         // Find user

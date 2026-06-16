@@ -48,6 +48,11 @@ class SsoVerifyController extends Controller
         try {
             // Use TokenBuilder which uses Firebase\JWT - consistent with token issuance
             $claims = $this->tokenBuilder->verify($validated['token']);
+
+            if ($claims->type !== 'access') {
+                throw new \Exception('Invalid token type. Expected access token.');
+            }
+
             $payload = $claims->toPayload();
 
             Log::info('[IAM] SSO: Token verified successfully', [

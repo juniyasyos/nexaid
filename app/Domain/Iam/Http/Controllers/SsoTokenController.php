@@ -29,7 +29,7 @@ class SsoTokenController extends Controller
     public function issueToken(Request $request): JsonResponse
     {
         $request->validate([
-            'app_key' => 'nullable|string|exists:applications,app_key',
+            'app_key' => 'required|string|exists:applications,app_key',
         ]);
 
         // Get user from middleware authentication or session
@@ -50,29 +50,28 @@ class SsoTokenController extends Controller
             ], 403);
         }
 
-        // Validate application if app_key provided
-        if ($request->has('app_key')) {
-            $application = Application::findByKey($request->app_key);
+        // Validate application
+        $application = Application::findByKey($request->app_key);
 
-            if (! $application->enabled) {
-                return response()->json([
-                    'error' => 'invalid_application',
-                    'message' => 'Application is not enabled.',
-                ], 400);
-            }
+        if (! $application->enabled) {
+            return response()->json([
+                'error' => 'invalid_application',
+                'message' => 'Application is not enabled.',
+            ], 400);
+        }
 
-            // Ensure user has a profile that grants roles for this app.
-            if (! $user->hasActiveAccessProfileForApp($application)) {
-                return response()->json([
-                    'error' => 'access_denied',
-                    'message' => 'User does not have an active access profile with roles for this application.',
-                ], 403);
-            }
+        // Ensure user has a profile that grants roles for this app.
+        if (! $user->hasActiveAccessProfileForApp($application)) {
+            return response()->json([
+                'error' => 'access_denied',
+                'message' => 'User does not have an active access profile with roles for this application.',
+            ], 403);
         }
 
         try {
-            // Build and encode token
-            $accessToken = $this->tokenBuilder->buildTokenForUser($user);
+            // Build and encode token, adding app context to extra claims
+            $extra = ['app' => $application->app_key];
+            $accessToken = $this->tokenBuilder->buildTokenForUser($user, $extra);
             $claims = $this->tokenBuilder->decode($accessToken);
 
             return response()->json([
@@ -216,13 +215,18 @@ class SsoTokenController extends Controller
         ]);
 
         try {
+            $claims = $this->tokenBuilder->decode($request->token);
+            if ($claims->type !== 'refresh') {
+                throw new \Exception('Invalid token type. Expected refresh token.');
+            }
+
             $newToken = $this->tokenBuilder->refresh($request->token);
-            $claims = $this->tokenBuilder->decode($newToken);
+            $newClaims = $this->tokenBuilder->decode($newToken);
 
             return response()->json([
                 'access_token' => $newToken,
                 'token_type' => 'Bearer',
-                'expires_in' => $claims->getTimeUntilExpiry(),
+                'expires_in' => $newClaims->getTimeUntilExpiry(),
             ]);
         } catch (\Exception $e) {
             return response()->json([
@@ -271,11 +275,14 @@ class SsoTokenController extends Controller
 
         // Issue token
         $user = User::findOrFail($authData['user_id']);
-        $accessToken = $this->tokenBuilder->buildTokenForUser($user);
+        $extra = ['app' => $application->app_key];
+        $accessToken = $this->tokenBuilder->buildTokenForUser($user, $extra);
+        $refreshToken = $this->tokenBuilder->buildRefreshTokenForUser($user, $extra);
         $claims = $this->tokenBuilder->decode($accessToken);
 
         return response()->json([
             'access_token' => $accessToken,
+            'refresh_token' => $refreshToken,
             'token_type' => 'Bearer',
             'expires_in' => $claims->getTimeUntilExpiry(),
         ]);
@@ -291,13 +298,24 @@ class SsoTokenController extends Controller
         ]);
 
         try {
+            $claims = $this->tokenBuilder->decode($request->refresh_token);
+            if ($claims->type !== 'refresh') {
+                throw new \Exception('Invalid token type. Expected refresh token.');
+            }
+
             $newToken = $this->tokenBuilder->refresh($request->refresh_token);
-            $claims = $this->tokenBuilder->decode($newToken);
+            $newClaims = $this->tokenBuilder->decode($newToken);
+            
+            // Build new refresh token with same app context
+            $user = User::findOrFail($newClaims->userId);
+            $extra = isset($newClaims->extra['app']) ? ['app' => $newClaims->extra['app']] : [];
+            $newRefreshToken = $this->tokenBuilder->buildRefreshTokenForUser($user, $extra);
 
             return response()->json([
                 'access_token' => $newToken,
+                'refresh_token' => $newRefreshToken,
                 'token_type' => 'Bearer',
-                'expires_in' => $claims->getTimeUntilExpiry(),
+                'expires_in' => $newClaims->getTimeUntilExpiry(),
             ]);
         } catch (\Exception $e) {
             return response()->json([
