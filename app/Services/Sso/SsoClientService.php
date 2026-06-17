@@ -37,13 +37,11 @@ class SsoClientService
 
     public function consumeAuthorizationCode(string $code): ?array
     {
-        $codeData = Cache::get("auth_code:{$code}");
+        $codeData = Cache::pull("auth_code:{$code}");
 
         if (! is_array($codeData)) {
             return null;
         }
-
-        Cache::forget("auth_code:{$code}");
 
         return $codeData;
     }

@@ -30,6 +30,7 @@ class TokenClaims
         public readonly int $expiresAt,
         public readonly ?string $unit = null,
         public readonly ?string $employeeId = null,
+        public readonly string $type = 'access',
         public readonly array $extra = []
     ) {}
 
@@ -50,6 +51,7 @@ class TokenClaims
             'iss' => $this->issuer,
             'iat' => $this->issuedAt,
             'exp' => $this->expiresAt,
+            'type' => $this->type,
         ];
 
         // Add unit and employee_id if present
@@ -84,7 +86,7 @@ class TokenClaims
     {
         // Extract extra fields that aren't standard JWT claims
         $extra = [];
-        $standardClaims = ['sub', 'nip', 'email', 'name', 'apps', 'roles_by_app', 'iss', 'iat', 'exp', 'unit', 'employee_id'];
+        $standardClaims = ['sub', 'nip', 'email', 'name', 'apps', 'roles_by_app', 'iss', 'iat', 'exp', 'unit', 'employee_id', 'type'];
 
         foreach ($data as $key => $value) {
             if (!in_array($key, $standardClaims, true)) {
@@ -104,6 +106,7 @@ class TokenClaims
             expiresAt: $data['exp'] ?? 0,
             unit: $data['unit'] ?? null,
             employeeId: $data['employee_id'] ?? null,
+            type: $data['type'] ?? 'access',
             extra: $extra
         );
     }

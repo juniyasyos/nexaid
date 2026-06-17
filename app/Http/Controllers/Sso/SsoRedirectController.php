@@ -143,9 +143,8 @@ class SsoRedirectController extends Controller
                 $separator = str_contains($application->callback_url, '?') ? '&' : '?';
                 $redirectUrl = $application->callback_url . $separator . http_build_query([
                     'error' => 'access_denied',
-                    'error_description' => $exception->getMessage(),
+                    'error_description' => 'An error occurred during the authentication process.',
                     'error_type' => class_basename($exception),
-                    'error_location' => $exception->getFile() . ':' . $exception->getLine(),
                 ]);
 
                 Log::warning('[IAM] SSO: Redirecting to callback with error', [
