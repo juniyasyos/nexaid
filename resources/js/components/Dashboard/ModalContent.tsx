@@ -169,17 +169,19 @@ export default function ModalContent({
                     Pengaturan Akun
                 </Link>
 
-                <button
-                    onClick={() => ssoService.redirectToAdminPanel()}
-                    className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all active:scale-[0.98] border ${
-                        isDark
-                            ? 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white'
-                            : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
-                    }`}
-                >
-                    <Settings className="h-3.5 w-3.5" />
-                    {MODAL_TEXTS.adminPanel}
-                </button>
+                {nip === '0000.00000' && (
+                    <button
+                        onClick={() => ssoService.redirectToAdminPanel()}
+                        className={`mt-2 flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-xs font-bold transition-all active:scale-[0.98] border ${
+                            isDark
+                                ? 'bg-white/5 text-slate-300 border-white/10 hover:bg-white/10 hover:text-white'
+                                : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:text-slate-900 shadow-sm'
+                        }`}
+                    >
+                        <Settings className="h-3.5 w-3.5" />
+                        {MODAL_TEXTS.adminPanel}
+                    </button>
+                )}
 
                 <button
                     onClick={logout}

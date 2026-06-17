@@ -1,4 +1,4 @@
-import{b as n,j as e,H as f}from"./app-D4FuMam0.js";import{S as w}from"./SettingsLayout-Cntnu096.js";import{s as c,S as j,L as N}from"./ssoService-BHw1c9zV.js";import{U as x}from"./user-CeppE38V.js";import{c as d}from"./createLucideIcon-CwVBtFnp.js";import"./styles-DiNm2-Kx.js";import"./hospital-dJzMZKQ5.js";/**
+import{b as n,j as e,H as f}from"./app-B24J2w2w.js";import{S as w}from"./SettingsLayout-DBJ877rk.js";import{s as c,S as j,L as N}from"./ssoService-U6tx9Afu.js";import{U as x}from"./user-Cy9JFB52.js";import{c as d}from"./createLucideIcon-BqJ-si3I.js";import"./styles-MYutOQyC.js";import"./hospital-B13nojq8.js";/**
  * @license lucide-react v1.7.0 - ISC
  *
  * This source code is licensed under the ISC license.
