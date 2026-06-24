@@ -238,10 +238,6 @@ class User extends Authenticatable
         $cacheKey = "user.roles_by_app.{$this->id}";
 
         return Cache::remember($cacheKey, 3600, function () {
-            if ($this->isIAMAdmin()) {
-                return [];
-            }
-
             $roles = $this->effectiveApplicationRoles()->with('application')->get();
 
             $grouped = [];
@@ -275,10 +271,6 @@ class User extends Authenticatable
         $cacheKey = "user.accessible_apps.{$this->id}";
 
         return Cache::remember($cacheKey, 3600, function () {
-            if ($this->isIAMAdmin()) {
-                return [];
-            }
-
             // More efficient single query vs multiple queries
             $appKeys = DB::table('applications as a')
                 ->distinct()
