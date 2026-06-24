@@ -1,0 +1,26 @@
+[
+    {
+        "slug": "super_admin",
+        "name": "Super Administrator LMS",
+        "description": "Memiliki akses penuh untuk mengelola seluruh konfigurasi, pengguna, materi, kelas, pelatihan, dan fitur pada sistem LMS.",
+        "is_system": true
+    },
+    {
+        "slug": "admin",
+        "name": "Administrator LMS",
+        "description": "Bertugas mengelola data pembelajaran, materi, kelas, peserta, jadwal pelatihan, serta operasional LMS secara umum.",
+        "is_system": false
+    },
+    {
+        "slug": "teacher",
+        "name": "Pengajar / Instruktur",
+        "description": "Bertugas membuat, mengelola, dan menyampaikan materi pembelajaran, serta memantau aktivitas dan progres peserta.",
+        "is_system": false
+    },
+    {
+        "slug": "karyawan",
+        "name": "Karyawan / Peserta",
+        "description": "Dapat mengakses materi pembelajaran, mengikuti pelatihan, mengerjakan aktivitas belajar, dan melihat progres pembelajaran pribadi.",
+        "is_system": false
+    }
+]

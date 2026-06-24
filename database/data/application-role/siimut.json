@@ -1,0 +1,26 @@
+[
+    {
+        "slug": "super_admin",
+        "name": "Super Administrator",
+        "description": "Memiliki akses penuh untuk mengelola seluruh konfigurasi, data, pengguna, dan fitur pada sistem SIIMUT.",
+        "is_system": true
+    },
+    {
+        "slug": "tim_mutu",
+        "name": "Koordinator Mutu",
+        "description": "Bertugas melakukan monitoring, evaluasi, verifikasi, serta pengelolaan data mutu pada unit kerja terkait.",
+        "is_system": false
+    },
+    {
+        "slug": "pengumpul_data",
+        "name": "Petugas Input Data Mutu",
+        "description": "Bertanggung jawab melakukan pengumpulan, pengisian, dan pembaruan data mutu sesuai kebutuhan pelaporan.",
+        "is_system": false
+    },
+    {
+        "slug": "validator_pic",
+        "name": "Validator Data Mutu",
+        "description": "Melakukan pemeriksaan dan validasi terhadap data mutu sebelum diproses atau dipublikasikan.",
+        "is_system": false
+    }
+]

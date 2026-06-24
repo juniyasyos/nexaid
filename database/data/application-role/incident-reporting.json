@@ -1,0 +1,26 @@
+[
+    {
+        "slug": "super_admin",
+        "name": "Super Administrator Incident Report",
+        "description": "Memiliki akses penuh untuk mengelola sistem pelaporan insiden, pengguna, data, dan pengaturan aplikasi.",
+        "is_system": true
+    },
+    {
+        "slug": "tim_mutu",
+        "name": "Tim Investigasi & Mutu",
+        "description": "Bertugas melakukan monitoring, investigasi, tindak lanjut, dan evaluasi terhadap laporan insiden yang masuk.",
+        "is_system": false
+    },
+    {
+        "slug": "kepala_unit",
+        "name": "Kepala Unit / Penanggung Jawab",
+        "description": "Bertugas melakukan pemantauan, evaluasi, persetujuan, serta tindak lanjut terhadap laporan insiden pada unit kerja yang dipimpin.",
+        "is_system": false
+    },
+    {
+        "slug": "pelapor",
+        "name": "Pelapor Insiden",
+        "description": "Dapat membuat dan mengelola laporan insiden sesuai kewenangan yang diberikan.",
+        "is_system": false
+    }
+]

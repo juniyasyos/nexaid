@@ -65,6 +65,7 @@ class SsoVerifyController extends Controller
                 // Backwards compatible: some clients expect `nip` at the root level
                 'nip' => $payload['nip'] ?? null,
                 'email' => $payload['email'] ?? null,
+                'name' => $payload['name'] ?? null,
 
                 // Root token claims for client mapping
                 'sub' => $payload['sub'] ?? null,
