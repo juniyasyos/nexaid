@@ -79,6 +79,16 @@ class SessionService
             Auth::login($user, $request->boolean('remember'));
             $request->session()->regenerate();
 
+            // CLEAR cache logout timestamp agar token baru tidak dianggap revoked
+            Cache::forget("user_logout_at:{$user->id}");
+
+            // Log for debugging
+            Log::info('auth.login_cache_cleared', [
+                'user_id' => $user->id,
+                'nip' => $user->nip,
+                'reason' => 'Cleared user_logout_at cache on new login',
+            ]);
+
             session()->put('user_status', $user->status);
             session()->put('user_id', $user->id);
 
@@ -93,6 +103,30 @@ class SessionService
                         'user_id' => $user->id,
                         'nip' => $user->nip,
                     ]);
+
+                    // FIX: Buat session model baru secara eksplisit
+                    try {
+                        Session::updateOrCreate(
+                            ['id' => $request->session()->getId()],
+                            [
+                                'user_id'       => $user->id,
+                                'ip_address'    => $request->ip(),
+                                'user_agent'    => substr($request->userAgent() ?? '', 0, 500),
+                                'is_active'     => true,
+                                'last_activity' => now()->timestamp,
+                                'payload'       => '',
+                            ]
+                        );
+                        Log::info('auth.login_session_model_created', [
+                            'session_id' => $request->session()->getId(),
+                            'user_id'    => $user->id,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::error('auth.login_session_model_create_failed', [
+                            'error'   => $e->getMessage(),
+                            'user_id' => $user->id,
+                        ]);
+                    }
                 } else {
                     $sessionModel->user_id = $user->id;
                     $sessionModel->is_active = true;

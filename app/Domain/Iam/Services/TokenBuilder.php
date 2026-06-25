@@ -153,7 +153,7 @@ class TokenBuilder
         // Reject tokens issued before a recorded user logout timestamp.
         $logoutAt = Cache::get("user_logout_at:{$claims->userId}");
 
-        if ($logoutAt !== null && $claims->issuedAt <= $logoutAt) {
+        if ($logoutAt !== null && $claims->issuedAt < $logoutAt) {
             throw new \Exception('Token has been revoked due to user logout.');
         }
 
