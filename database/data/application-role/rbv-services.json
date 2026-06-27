@@ -1,0 +1,32 @@
+[
+  {
+    "slug": "super_admin",
+    "name": "Super Administrator",
+    "description": "Memiliki akses penuh untuk mengelola seluruh konfigurasi, pengguna, ruangan, fasilitas, aset, pemesanan, kunjungan, dan fitur pada sistem.",
+    "is_system": true
+  },
+  {
+    "slug": "admin",
+    "name": "Administrator",
+    "description": "Bertugas mengelola data ruangan, fasilitas, aset, jadwal booking, kunjungan, serta operasional sistem secara umum.",
+    "is_system": false
+  },
+  {
+    "slug": "sekretaris",
+    "name": "Sekretaris",
+    "description": "Bertugas membuat, mengatur, dan memantau jadwal pemesanan ruangan atau fasilitas untuk kebutuhan rapat, agenda unit, dan kegiatan organisasi.",
+    "is_system": false
+  },
+  {
+    "slug": "karyawan",
+    "name": "Karyawan",
+    "description": "Dapat mengajukan pemesanan ruangan, fasilitas, atau aset, melihat status booking, serta mengakses informasi jadwal yang tersedia.",
+    "is_system": false
+  },
+  {
+    "slug": "unit",
+    "name": "Unit Kerja",
+    "description": "Bertugas mengelola atau memantau pemesanan yang berkaitan dengan unit kerja masing-masing, termasuk kebutuhan ruangan, fasilitas, dan agenda internal.",
+    "is_system": false
+  }
+]

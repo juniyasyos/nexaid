@@ -46,8 +46,8 @@ class ApplicationsSeeder extends Seeder
             // ],
             [
                 'app_key' => 'lms-services',
-                'name' => 'LMS - Learning Management Systems',
-                'description' => 'Sistem manajemen pembelajaran untuk mendukung pelatihan, distribusi materi, pemantauan peserta, dan pengembangan kompetensi sumber daya manusia.',
+                'name' => 'LMS - Learning Management System',
+                'description' => 'Sistem manajemen pembelajaran untuk mendukung pelatihan, distribusi materi, pemantauan peserta, sertifikasi, dan pengembangan kompetensi sumber daya manusia.',
                 'enabled' => true,
                 'redirect_uris' => [
                     'http://127.0.0.1:7100',
@@ -59,6 +59,36 @@ class ApplicationsSeeder extends Seeder
                 'token_expiry' => 7200,
                 'created_by' => $admin?->id,
             ],
+            [
+                'app_key' => 'rbv-services',
+                'name' => 'RBV - Resource Booking & Visitor',
+                'description' => 'Sistem manajemen pemesanan ruangan, fasilitas, aset, serta pencatatan dan pengelolaan kunjungan untuk mendukung operasional organisasi.',
+                'enabled' => true,
+                'redirect_uris' => [
+                    'http://127.0.0.1:7200',
+                ],
+                'callback_url' => 'http://127.0.0.1:7300/sso/callback',
+                'backchannel_url' => 'http://127.0.0.1:7300',
+                'secret' => 'rbv_secret_key_456',
+                'logo_url' => null,
+                'token_expiry' => 7300,
+                'created_by' => $admin?->id,
+            ],
+            // [
+            //     'app_key' => 'smartpresence-services',
+            //     'name' => 'SmartPresence',
+            //     'description' => 'Sistem presensi digital untuk mencatat kehadiran, jam kerja, lokasi absensi, serta memantau kedisiplinan dan aktivitas pegawai secara real-time.',
+            //     'enabled' => true,
+            //     'redirect_uris' => [
+            //         'http://127.0.0.1:7300',
+            //     ],
+            //     'callback_url' => 'http://127.0.0.1:7400/sso/callback',
+            //     'backchannel_url' => 'http://127.0.0.1:7400',
+            //     'secret' => 'smartpresence_secret_key_123',
+            //     'logo_url' => null,
+            //     'token_expiry' => 7200,
+            //     'created_by' => $admin?->id,
+            // ],
         ];
 
         foreach ($applications as $data) {
