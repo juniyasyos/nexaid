@@ -87,16 +87,34 @@ class RolesRelationManager extends RelationManager
                             ->searchable()
                             ->required()
                             ->native(false),
-                    ]),
+                    ])
+                    ->after(function ($livewire) {
+                        $accessProfile = $livewire->getOwnerRecord();
+                        foreach ($accessProfile->users as $user) {
+                            $user->clearRelationshipCaches();
+                        }
+                    }),
             ])
             ->recordActions([
                 DetachAction::make()
-                    ->requiresConfirmation(),
+                    ->requiresConfirmation()
+                    ->after(function ($livewire) {
+                        $accessProfile = $livewire->getOwnerRecord();
+                        foreach ($accessProfile->users as $user) {
+                            $user->clearRelationshipCaches();
+                        }
+                    }),
             ])
             ->toolbarActions([
                 \Filament\Actions\BulkActionGroup::make([
                     DetachBulkAction::make()
-                        ->requiresConfirmation(),
+                        ->requiresConfirmation()
+                        ->after(function ($livewire) {
+                            $accessProfile = $livewire->getOwnerRecord();
+                            foreach ($accessProfile->users as $user) {
+                                $user->clearRelationshipCaches();
+                            }
+                        }),
                 ]),
             ])
             ->emptyStateHeading('No roles assigned yet')

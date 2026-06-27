@@ -71,5 +71,11 @@ class EditAccessProfile extends EditRecord
         if (! empty($this->tempRoleIds)) {
             $this->record->roles()->sync($this->tempRoleIds);
         }
+
+        // Clear cache for all users who have this access profile
+        // so their roles_by_app is refreshed immediately.
+        foreach ($this->record->users as $user) {
+            $user->clearRelationshipCaches();
+        }
     }
 }
