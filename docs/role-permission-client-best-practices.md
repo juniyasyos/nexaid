@@ -62,6 +62,16 @@ Gunakan urutan ini di semua endpoint/service client:
 6. Jika action terkait data unit kerja, terapkan filter scope unit kerja.
 7. Jika salah satu langkah gagal, tolak akses.
 
+## 3.3. Penanganan Multi-Role (Penggabungan Role)
+
+Sangat mungkin terjadi seorang user memiliki lebih dari satu role untuk aplikasi yang sama (misalnya, mendapat `role_a` dari Access Profile A, dan `role_b` dari Access Profile B).
+
+Dalam kasus ini:
+1. **Di sisi Auth Server (IAM):** Sistem tidak akan menolak atau menimpa role. IAM akan mengakomodir penumpukan role dan mengirimkannya dalam bentuk array saat proses SSO (misal: `roles: [{slug: "role_a"}, {slug: "role_b"}]`).
+2. **Di sisi Aplikasi Client:** Client wajib melakukan penggabungan (Union) permission dari seluruh role yang diterima. Jika `role_a` memberikan permission `["incident.read", "incident.create"]` dan `role_b` memberikan `["incident.verify"]`, maka user tersebut berhak atas gabungan ketiganya: `["incident.read", "incident.create", "incident.verify"]`.
+
+Hal ini menegaskan prinsip *Separation of Concerns*: IAM hanya bertugas menyediakan daftar otentik semua identitas/role user, sementara Client bertugas mengevaluasi kalkulasi akhir hak akses (Business Logic).
+
 ## 4. Aturan Menghindari Bentrokan `super_admin` vs `unit kerja`
 
 Masalah umum: user punya assignment unit kerja tertentu, tetapi juga punya role tinggi (`super_admin`) sehingga aturan jadi ambigu.
