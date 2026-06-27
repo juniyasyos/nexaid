@@ -36,6 +36,11 @@ class SettingResource extends Resource
 
     protected static ?string $recordTitleAttribute = 'key';
 
+    public static function getNavigationGroup(): ?string
+    {
+        return __('filament-spatie-backup::backup.pages.backups.navigation.group');
+    }
+
     public static function form(Schema $schema): Schema
     {
         return SettingForm::configure($schema);

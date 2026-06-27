@@ -11,18 +11,20 @@ class CompanyController extends Controller
 {
     public function show(Request $request, SettingService $settingService): JsonResponse
     {
+        $settings = $settingService->group('company');
+
         return response()->json([
-            'name' => $settingService->get('company.name', 'Perusahaan Anandan'),
-            'tagline' => $settingService->get('company.tagline', 'Melayani dengan Hati dan Profesionalisme'),
-            'logo' => $settingService->get('company.logo', '/images/company/logo.png'),
-            'address' => $settingService->get('company.address', 'Jl. Raya Kesehatan No. 123, Kecamatan Sejahtera'),
-            'city' => $settingService->get('company.city', 'Jember'),
-            'postal_code' => $settingService->get('company.postal_code', '68121'),
-            'phone' => $settingService->get('company.phone', '(0331) 123456'),
-            'email' => $settingService->get('company.email', 'info@citrahusada.co.id'),
-            'website' => $settingService->get('company.website', 'https://citrahusada.co.id'),
-            'director_name' => $settingService->get('company.director_name', 'dr. Andi Pratama, M.Kes'),
-            'director_title' => $settingService->get('company.director_title', 'Direktur Utama'),
+            'name' => $settings['company.name'] ?? 'Perusahaan Anandan',
+            'tagline' => $settings['company.tagline'] ?? 'Melayani dengan Hati dan Profesionalisme',
+            'logo' => $settings['company.logo'] ?? '/images/company/logo.png',
+            'address' => $settings['company.address'] ?? 'Jl. Raya Kesehatan No. 123, Kecamatan Sejahtera',
+            'city' => $settings['company.city'] ?? 'Jember',
+            'postal_code' => $settings['company.postal_code'] ?? '68121',
+            'phone' => $settings['company.phone'] ?? '(0331) 123456',
+            'email' => $settings['company.email'] ?? 'info@citrahusada.co.id',
+            'website' => $settings['company.website'] ?? 'https://citrahusada.co.id',
+            'director_name' => $settings['company.director_name'] ?? 'dr. Andi Pratama, M.Kes',
+            'director_title' => $settings['company.director_title'] ?? 'Direktur Utama',
         ]);
     }
 }

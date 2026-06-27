@@ -19,11 +19,16 @@ use Illuminate\Support\Facades\Route;
 // Public company info endpoint.
 Route::get('/company', [CompanyController::class, 'show']);
 
-// Lightweight setting endpoint for selecting which login view to use
-Route::get('/settings/login-view', function () {
-    $value = DB::table('settings')->where('key', 'login_view')->value('value');
+// Lightweight config for login page
+Route::get('/settings/login-config', function () {
+    $settings = DB::table('settings')
+        ->whereIn('key', ['login_view', 'company.name'])
+        ->pluck('value', 'key');
 
-    return response()->json(['value' => $value ?? 'type1']);
+    return response()->json([
+        'login_view' => $settings['login_view'] ?? 'type1',
+        'company_name' => $settings['company.name'] ?? 'Perusahaan Anandan',
+    ]);
 });
 
 // Protected user data route for TTD pre-signed URLs.

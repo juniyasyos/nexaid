@@ -1,9 +1,15 @@
-import React, { useState, useEffect, lazy, Suspense } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const LoginViewType1 = lazy(() => import('./Login/LoginViewType1'));
-const LoginViewType2 = lazy(() => import('./Login/LoginViewType2'));
-const LoginDefaultView = lazy(() => import('./Login/LoginDefaultView'));
+import LoginViewType1 from './Login/LoginViewType1';
+import LoginViewType2 from './Login/LoginViewType2';
+import LoginDefaultView from './Login/LoginDefaultView';
+
+const LoginLoader = () => (
+  <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="animate-spin rounded-full h-10 w-10 border-4 border-gray-200 border-t-blue-600"></div>
+  </div>
+);
 
 interface CompanyData {
   name?: string;
@@ -48,33 +54,22 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
   useEffect(() => {
     let isMounted = true;
 
-    const loadCompanyData = async () => {
+    const loadConfig = async () => {
       try {
-        const response = await axios.get<CompanyData>('/api/company');
+        const r = await axios.get('/api/settings/login-config');
         if (isMounted) {
-          setCompanyName(response.data.name ?? '');
-        }
-      } catch (err) {
-        console.warn('Unable to load company data', err);
-      }
-    };
-
-    loadCompanyData();
-
-    // load login view preference (lightweight)
-    const loadViewPref = async () => {
-      try {
-        const r = await axios.get('/api/settings/login-view');
-        if (isMounted) {
-          const v = r.data?.value ?? 'type1';
+          setCompanyName(r.data.company_name ?? '');
+          const v = r.data.login_view ?? 'type1';
           setViewType(v === 'default' ? 'default' : v === 'type2' ? 'type2' : 'type1');
         }
       } catch (err) {
-        if (isMounted) setViewType('type1');
+        if (isMounted) {
+          setViewType('type1');
+        }
       }
     };
 
-    loadViewPref();
+    loadConfig();
 
     return () => {
       isMounted = false;
@@ -100,7 +95,7 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
     }
   };
 
-  if (!viewType) return null; // still loading preference
+  if (!viewType) return <LoginLoader />;
 
   const commonProps = {
     nip,
@@ -120,7 +115,7 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
   } as const;
 
   return (
-    <Suspense fallback={null}>
+    <>
       {viewType === 'default' ? (
         <LoginDefaultView {...commonProps} />
       ) : viewType === 'type1' ? (
@@ -128,6 +123,6 @@ export default function Login({ onLogin, isLoading = false, error, devAutofill =
       ) : viewType === 'type2' ? (
         <LoginViewType2 {...commonProps} />
       ) : null}
-    </Suspense>
+    </>
   );
 }

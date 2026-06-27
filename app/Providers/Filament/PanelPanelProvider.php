@@ -15,6 +15,8 @@ use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
 use Illuminate\Routing\Middleware\SubstituteBindings;
 use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Juniyasyos\FilamentLaravelBackup\FilamentLaravelBackupPlugin;
+use Juniyasyos\FilamentLaravelBackup\Pages\Backups;
 use Leandrocfe\FilamentApexCharts\FilamentApexChartsPlugin;
 
 class PanelPanelProvider extends PanelProvider
@@ -42,6 +44,8 @@ class PanelPanelProvider extends PanelProvider
             ->plugins([
                 $themePlugin,
                 FilamentApexChartsPlugin::make(),
+                FilamentLaravelBackupPlugin::make()
+                    ->usingPage(Backups::class)
             ])
             ->globalSearch(false)
             ->discoverResources(in: app_path('Filament/Panel/Resources'), for: 'App\Filament\Panel\Resources')

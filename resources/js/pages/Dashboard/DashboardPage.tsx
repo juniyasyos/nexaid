@@ -14,7 +14,7 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!inertiaUser && !isAuthenticated) {
       router.visit('/login');
-    } else if (inertiaUser || isAuthenticated) {
+    } else if (!inertiaUser && isAuthenticated) {
       checkAuth();
     }
   }, [isAuthenticated, inertiaUser, checkAuth]);
