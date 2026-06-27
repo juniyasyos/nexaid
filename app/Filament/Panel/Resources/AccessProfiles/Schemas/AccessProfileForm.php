@@ -16,6 +16,7 @@ use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Str;
+use Filament\Forms\Components\CheckboxList;
 
 class AccessProfileForm
 {
@@ -113,49 +114,24 @@ class AccessProfileForm
                             ]),
 
                         Section::make('Included Roles')
-                            ->description('Select which application roles to include in this bundle. Users assigned to this bundle will automatically receive all included roles.')
-                            ->schema([
-                                Select::make('roles')
-                                    ->label('Select Roles (Application — Role)')
-                                    ->relationship(
-                                        name: 'roles',
-                                        titleAttribute: 'name',
-                                        modifyQueryUsing: function (Builder $query, Get $get) {
-                                            $query->with('application');
-
-                                            // Filter out roles dari aplikasi yang sudah dipilih, tapi tetap sertakan role yang sudah dipilih dalam state
-                                            $selectedRoles = $get('roles') ?? [];
-                                            if (!empty($selectedRoles)) {
-                                                $selectedApplicationIds = ApplicationRole::query()
-                                                    ->whereIn('id', $selectedRoles)
-                                                    ->pluck('application_id')
-                                                    ->toArray();
-
-                                                if (!empty($selectedApplicationIds)) {
-                                                    $query->where(function (Builder $subQuery) use ($selectedRoles, $selectedApplicationIds) {
-                                                        $subQuery
-                                                            ->whereIn('id', $selectedRoles)
-                                                            ->orWhereNotIn('application_id', $selectedApplicationIds);
-                                                    });
-                                                }
-                                            }
-
-                                            return $query;
-                                        },
-                                    )
-                                    ->getOptionLabelFromRecordUsing(
-                                        fn(ApplicationRole $record): string => ($record->application?->name ?? 'App ID: ' . $record->application_id)
-                                        . ' — '
-                                        . $record->name
-                                    )
-                                    ->multiple()
-                                    ->default([])
-                                    ->searchable()
-                                    ->preload()
-                                    ->helperText('Pilih maksimal satu role per aplikasi.')
-                                    ->rules([new UniqueRolePerApplication()])
-                                    ->columnSpanFull(),
-                            ]),
+                            ->description('Pilih role aplikasi yang akan dimasukkan ke bundle ini.')
+                            ->schema(function () {
+                                $apps = \App\Domain\Iam\Models\Application::with('roles')->get();
+                                $fields = [];
+                                foreach ($apps as $app) {
+                                    if ($app->roles->isEmpty()) {
+                                        continue;
+                                    }
+                                    
+                                    $fields[] = ToggleButtons::make("app_roles.{$app->id}")
+                                        ->label($app->name)
+                                        ->options($app->roles->pluck('name', 'id')->toArray())
+                                        ->inline()
+                                        ->helperText('Pilih maksimal satu role untuk aplikasi ini.');
+                                }
+                                return $fields;
+                            })
+                            ->columns(1),
 
                         Section::make('Documentation')
                             ->description('Brief documentation about the purpose, scope, and who uses this bundle.')

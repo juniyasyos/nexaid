@@ -2,7 +2,7 @@
 
 namespace App\Filament\Panel\Pages;
 
-use App\Filament\Panel\Widgets\AccessProfilesChart;
+// use App\Filament\Panel\Widgets\AccessProfilesChart;
 use App\Filament\Panel\Widgets\ApplicationAccessSummary;
 use App\Filament\Panel\Widgets\ProfileRoleConfigurationMap;
 use App\Filament\Panel\Widgets\StatsOverview;
@@ -24,7 +24,7 @@ class Dashboard extends BaseDashboard
             StatsOverview::class,
             UserAssignmentCoverageStatus::class,
             ProfileRoleConfigurationMap::class,
-            AccessProfilesChart::class,
+            // AccessProfilesChart::class,
             ApplicationAccessSummary::class,
         ];
     }

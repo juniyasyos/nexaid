@@ -165,6 +165,51 @@ class ApplicationForm
                                                     ->prefixIcon('heroicon-m-photo')
                                                     ->helperText('Displayed in the SSO portal and application picker.'),
 
+                                                Select::make('icon')
+                                                    ->label('Icon Name (Lucide React)')
+                                                    ->options([
+                                                        'Hospital' => 'Hospital (Sistem/Manajemen Rumah Sakit umum)',
+                                                        'Pill' => 'Pill (Apotek / Farmasi)',
+                                                        'TestTube' => 'TestTube (Laboratorium Klinik)',
+                                                        'Microscope' => 'Microscope (Laboratorium / Riset)',
+                                                        'FileText' => 'FileText (Rekam Medis / Dokumen Pasien)',
+                                                        'ClipboardList' => 'ClipboardList (Laporan / Rekam Medis / Check-up)',
+                                                        'Users' => 'Users (Sistem Antrian / SDM / Kepegawaian)',
+                                                        'ShieldCheck' => 'ShieldCheck (Akses Kontrol / Keamanan / Sistem Admin)',
+                                                        'CircleAlert' => 'CircleAlert (Insiden / Pelaporan / Peringatan)',
+                                                        'Utensils' => 'Utensils (Manajemen Gizi / Dapur RS)',
+                                                        'Activity' => 'Activity (Monitoring Kinerja / Dashboard Operasional)',
+                                                        'Stethoscope' => 'Stethoscope (Layanan Dokter / Poliklinik)',
+                                                        'HeartPulse' => 'HeartPulse (IGD / Tanda Vital / Monitoring Kesehatan)',
+                                                        'Syringe' => 'Syringe (Layanan Vaksinasi / Perawat / Tindakan Medis)',
+                                                        'Bed' => 'Bed (Rawat Inap / Manajemen Bangsal)',
+                                                        'GraduationCap' => 'GraduationCap (Learning Management Systems / Pelatihan)',
+                                                        'BookOpen' => 'BookOpen (Ruang Baca Virtual / Modul Materi)',
+                                                        'Library' => 'Library (Perpustakaan / Ruang Baca Virtual)',
+                                                        'Fingerprint' => 'Fingerprint (Smartpresence / Presensi Biometrik)',
+                                                        'UserCheck' => 'UserCheck (Smartpresence / Kehadiran Validasi)',
+                                                    ])
+                                                    ->nullable()
+                                                    ->searchable()
+                                                    ->helperText('Pilih icon dari pustaka Lucide React yang tersedia.'),
+                                                    
+                                                Select::make('gradient')
+                                                    ->label('Card Gradient')
+                                                    ->options([
+                                                        'from-blue-500 to-blue-600' => 'Blue',
+                                                        'from-orange-500 to-orange-600' => 'Orange',
+                                                        'from-emerald-500 to-emerald-600' => 'Emerald',
+                                                        'from-teal-500 to-teal-600' => 'Teal',
+                                                        'from-purple-500 to-purple-600' => 'Purple',
+                                                        'from-indigo-500 to-indigo-600' => 'Indigo',
+                                                        'from-cyan-500 to-cyan-600' => 'Cyan',
+                                                        'from-pink-500 to-pink-600' => 'Pink',
+                                                        'from-red-500 to-red-600' => 'Red',
+                                                        'from-gray-500 to-gray-600' => 'Gray',
+                                                    ])
+                                                    ->nullable()
+                                                    ->helperText('Warna gradient untuk kartu aplikasi di Dashboard.'),
+
                                                 TextEntry::make('branding_note')
                                                     ->label('Display Recommendation')
                                                     ->state('Gunakan logo SVG atau PNG transparan dengan ukuran konsisten agar tampilan portal SSO tetap rapi dan profesional.'),

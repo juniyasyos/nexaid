@@ -39,12 +39,15 @@ export interface DashboardProps {
         app_url?: string;
         enabled: boolean;
         logo_url?: string | null;
+        icon?: string | null;
+        gradient?: string | null;
     }>;
     accessProfiles?: AccessProfile[];
 }
 
 export interface ApplicationWithIcon extends Application {
-    icon: React.ElementType;
+    icon: React.ElementType | string;
+    iconString?: string | null;
     gradient: string;
     isOnline: boolean;
     userRole?: string;

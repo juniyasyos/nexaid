@@ -1,14 +1,30 @@
 /* Reset ringan + transisi + surface */
-html.fi, .fi-body { font-family: var(--font-sans, Instrument Sans, ui-sans-serif, system-ui, sans-serif); }
-html { scroll-padding-top: var(--fi-topbar-h); }
+html.fi,
+.fi-body {
+  font-family: var(--font-sans, Instrument Sans, ui-sans-serif, system-ui, sans-serif);
+}
 
-html.fi, .fi-body, .fi-topbar, .fi-main, .fi-section, .fi-wi-widget,
-.fi-input-wrp, .fi-modal-window, .fi-dropdown-panel {
+html {
+  scroll-padding-top: var(--fi-topbar-h);
+}
+
+html.fi,
+.fi-body,
+.fi-topbar,
+.fi-main,
+.fi-section,
+.fi-wi-widget,
+.fi-input-wrp,
+.fi-modal-window,
+.fi-dropdown-panel {
   transition: background-color .25s ease, border-color .25s ease, color .25s ease;
 }
 
 /* Backgrounds */
-.fi-body, .fi-main { @apply bg-[#F7F8FB] dark:bg-[var(--ds-dark-bg-primary-color)]; }
+.fi-body,
+.fi-main {
+  @apply bg-[#F7F8FB] dark:bg-[var(--ds-dark-bg-primary-color)];
+}
 
 /* Make fi-topbar background match sidebar (fi-main) */
 .fi-topbar {
@@ -16,6 +32,43 @@ html.fi, .fi-body, .fi-topbar, .fi-main, .fi-section, .fi-wi-widget,
 }
 
 /* Scrollbar */
-::-webkit-scrollbar{ width:.5rem; height:.5rem; }
-::-webkit-scrollbar-track{ @apply bg-gray-200 dark:bg-[var(--ds-dark-bg-primary-color)]; }
-::-webkit-scrollbar-thumb{ @apply bg-gray-300 dark:bg-slate-700; }
+::-webkit-scrollbar {
+  width: .5rem;
+  height: .5rem;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-gray-200 dark:bg-[var(--ds-dark-bg-primary-color)];
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-gray-300 dark:bg-slate-700;
+}
+
+
+.role-button-picker .fi-fo-checkbox-list-option {
+  display: inline-flex;
+  margin-right: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.role-button-picker .fi-fo-checkbox-list-option label {
+  border: 1px solid rgb(212 212 216);
+  border-radius: 0.75rem;
+  padding: 0.5rem 0.875rem;
+  cursor: pointer;
+  transition: all 150ms ease;
+  font-size: 0.875rem;
+  background: white;
+}
+
+.role-button-picker .fi-fo-checkbox-list-option label:hover {
+  background: rgb(244 244 245);
+}
+
+.role-button-picker .fi-checkbox-input:checked+label,
+.role-button-picker input[type="checkbox"]:checked+label {
+  background: rgb(37 99 235);
+  border-color: rgb(37 99 235);
+  color: white;
+}

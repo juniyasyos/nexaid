@@ -43,6 +43,8 @@ class Application extends Model
         'logout_uri',
         'secret',
         'logo_url',
+        'icon',
+        'gradient',
         'token_expiry',
         'created_by',
     ];

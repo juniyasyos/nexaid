@@ -1,5 +1,5 @@
 /* Section & Widget */
-.fi-section{ @apply ring-0 dark:bg-[var(--ds-dark-bg-secondary-color)] dark:border dark:border-white/10; }
+.fi-section{ @apply ring-0 dark:bg-[var(--ds-dark-bg-secondary-color)] dark:border dark:border-white/10 !rounded-md; }
 .fi-wi-widget > .fi-section{
   @apply ring-offset-0 ring-0 dark:ring-1 dark:ring-offset-0 dark:ring-white/10 rounded-md
          dark:bg-[var(--ds-dark-bg-secondary-color)];
@@ -175,3 +175,14 @@
 /* Branding */
 .fi-logo{ @apply text-xl font-bold; line-height:1; }
 .fi-topbar .fi-logo{ display:inline-flex; align-items:center; white-space:nowrap; word-break:keep-all; hyphens:none; overflow:visible; text-overflow:clip; max-width:none; }
+
+/* Toggle Buttons (Role Picker) */
+.fi-fo-toggle-buttons {
+  @apply !ring-0 !shadow-none !border-none !gap-2;
+}
+.fi-fo-toggle-buttons button {
+  @apply !rounded-sm;
+}
+.fi-fo-toggle-buttons .fi-btn {
+  @apply !rounded-sm;
+}

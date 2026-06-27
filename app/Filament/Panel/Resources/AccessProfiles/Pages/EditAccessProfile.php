@@ -47,14 +47,29 @@ class EditAccessProfile extends EditRecord
      */
     protected array $tempRoleIds = [];
 
+    protected function mutateFormDataBeforeFill(array $data): array
+    {
+        // Populate the app_roles form state from the database
+        $data['app_roles'] = $this->record->roles->pluck('id', 'application_id')->toArray();
+
+        return $data;
+    }
+
     protected function mutateFormDataBeforeSave(array $data): array
     {
-        $roleIds = isset($data['roles']) ? (array) $data['roles'] : (isset($data['role_ids']) ? (array) $data['role_ids'] : []);
+        $roleIds = $data['app_roles'] ?? [];
 
         $this->tempRoleIds = array_values(array_unique(array_filter($roleIds)));
 
-        unset($data['roles'], $data['role_ids']);
+        unset($data['roles'], $data['role_ids'], $data['app_roles']);
 
         return $data;
+    }
+
+    protected function afterSave(): void
+    {
+        if (! empty($this->tempRoleIds)) {
+            $this->record->roles()->sync($this->tempRoleIds);
+        }
     }
 }

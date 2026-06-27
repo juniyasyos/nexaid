@@ -7,42 +7,65 @@ import {
     ShieldCheck,
     CircleAlert,
     Utensils,
+    Activity,
+    Stethoscope,
+    HeartPulse,
+    Syringe,
+    Bed,
+    Microscope,
+    ClipboardList,
+    GraduationCap,
+    BookOpen,
+    Library,
+    Fingerprint,
+    UserCheck,
 } from 'lucide-react';
 
-export const APP_CONFIG = {
-    'Application Control-Client': {
-        icon: ShieldCheck,
-        gradient: 'from-blue-500 to-blue-600'
-    },
-    'IKP - Incident Reporting System': {
-        icon: CircleAlert,
-        gradient: 'from-orange-500 to-orange-600'
-    },
-    'Pharmacy Management System': {
-        icon: Pill,
-        gradient: 'from-emerald-500 to-emerald-600'
-    },
-    'SIMGIZI - Sistem Informasi Manajemen': {
-        icon: Utensils,
-        gradient: 'from-teal-500 to-teal-600'
-    },
-    'Tamasudeva - Eticom Management Unit': {
-        icon: Hospital,
-        gradient: 'from-purple-500 to-purple-600'
-    },
-    'Laboratorium Klinik': {
-        icon: TestTube,
-        gradient: 'from-indigo-500 to-indigo-600'
-    },
-    'Rekam Medis Elektronik': {
-        icon: FileText,
-        gradient: 'from-cyan-500 to-cyan-600'
-    },
-    'Sistem Antrian Pasien': {
-        icon: Users,
-        gradient: 'from-pink-500 to-pink-600'
-    },
-} as const;
+export const AVAILABLE_ICONS: Record<string, React.ElementType> = {
+    Hospital,
+    Pill,
+    TestTube,
+    FileText,
+    Users,
+    ShieldCheck,
+    CircleAlert,
+    Utensils,
+    Activity,
+    Stethoscope,
+    HeartPulse,
+    Syringe,
+    Bed,
+    Microscope,
+    ClipboardList,
+    GraduationCap,
+    BookOpen,
+    Library,
+    Fingerprint,
+    UserCheck,
+};
+
+export const ICON_GRADIENTS: Record<string, string> = {
+    Hospital: 'from-purple-500 to-purple-600',
+    Pill: 'from-emerald-500 to-emerald-600',
+    TestTube: 'from-indigo-500 to-indigo-600',
+    Microscope: 'from-indigo-400 to-indigo-500',
+    FileText: 'from-cyan-500 to-cyan-600',
+    ClipboardList: 'from-cyan-400 to-cyan-500',
+    Users: 'from-pink-500 to-pink-600',
+    ShieldCheck: 'from-blue-500 to-blue-600',
+    CircleAlert: 'from-orange-500 to-orange-600',
+    Utensils: 'from-teal-500 to-teal-600',
+    Activity: 'from-blue-400 to-blue-500',
+    Stethoscope: 'from-blue-600 to-blue-700',
+    HeartPulse: 'from-rose-500 to-rose-600',
+    Syringe: 'from-sky-500 to-sky-600',
+    Bed: 'from-slate-500 to-slate-600',
+    GraduationCap: 'from-amber-500 to-amber-600',
+    BookOpen: 'from-amber-400 to-amber-500',
+    Library: 'from-amber-600 to-amber-700',
+    Fingerprint: 'from-zinc-500 to-zinc-600',
+    UserCheck: 'from-emerald-400 to-emerald-500',
+};
 
 export const DEFAULT_APP_CONFIG = {
     icon: Hospital,

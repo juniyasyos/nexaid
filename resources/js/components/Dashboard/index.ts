@@ -16,7 +16,8 @@ export type {
 
 // Exports constants
 export {
-    APP_CONFIG,
+    AVAILABLE_ICONS,
+    ICON_GRADIENTS,
     DEFAULT_APP_CONFIG,
     DASHBOARD_TEXTS,
     MODAL_TEXTS,

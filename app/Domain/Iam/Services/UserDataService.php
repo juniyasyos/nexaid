@@ -156,6 +156,8 @@ class UserDataService
                     'description' => $app->description,
                     'enabled' => $app->enabled,
                     'logo_url' => $app->logo_url,
+                    'icon' => $app->icon,
+                    'gradient' => $app->gradient,
                     'app_url' => $primaryUrl,
                     'redirect_uris' => $app->redirect_uris ?? [],
                     'roles' => $appRoles->map(fn($role) => [
@@ -294,6 +296,8 @@ class UserDataService
                     'description' => $app->description,
                     'enabled' => $app->enabled,
                     'logo_url' => $app->logo_url,
+                    'icon' => $app->icon,
+                    'gradient' => $app->gradient,
                     'app_url' => $primaryUrl,
                     'redirect_uris' => $app->redirect_uris ?? [],
                     'role' => [

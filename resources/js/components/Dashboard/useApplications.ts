@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import type { UserApplication } from '../../types';
 import type { ApplicationWithIcon } from './types';
-import { APP_CONFIG, DEFAULT_APP_CONFIG } from './constants';
+import { AVAILABLE_ICONS, DEFAULT_APP_CONFIG, ICON_GRADIENTS } from './constants';
 
 interface UseApplicationsProps {
     appsFromProps: Array<{
@@ -25,8 +25,6 @@ export function useApplications({ appsFromProps, userApplications }: UseApplicat
                 const appsList = appsFromProps;
 
                 const appsWithIcons = appsList.map((app) => {
-                    const config = APP_CONFIG[app.name as keyof typeof APP_CONFIG] || DEFAULT_APP_CONFIG;
-
                     const appStatus: 'Siap Diakses' | 'Dalam Pengembangan' = app.enabled
                         ? 'Siap Diakses'
                         : 'Dalam Pengembangan';
@@ -34,6 +32,15 @@ export function useApplications({ appsFromProps, userApplications }: UseApplicat
 
                     const userAppData = userApplications?.find((ua) => ua.app_key === app.app_key);
                     const userRole = userAppData?.roles?.[0]?.name || undefined;
+                    
+                    // Resolve Icon Component from AVAILABLE_ICONS map, fallback to default
+                    const resolvedIconComponent = (app.icon && AVAILABLE_ICONS[app.icon]) 
+                        ? AVAILABLE_ICONS[app.icon] 
+                        : DEFAULT_APP_CONFIG.icon;
+
+                    const defaultGradient = app.icon && ICON_GRADIENTS[app.icon]
+                        ? ICON_GRADIENTS[app.icon]
+                        : DEFAULT_APP_CONFIG.gradient;
 
                     return {
                         id: app.app_key,
@@ -42,10 +49,11 @@ export function useApplications({ appsFromProps, userApplications }: UseApplicat
                         status: appStatus,
                         url: app.app_url || `/${app.app_key}`,
                         notifications: 0,
-                        icon: config.icon,
-                        gradient: config.gradient,
+                        icon: resolvedIconComponent,
+                        gradient: app.gradient || defaultGradient,
                         isOnline: isOnline,
                         userRole: userRole,
+                        iconString: app.icon || null,
                     };
                 });
 

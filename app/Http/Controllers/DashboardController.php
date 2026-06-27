@@ -32,6 +32,8 @@ class DashboardController extends Controller
                     'app_url' => $app['app_url'],
                     'enabled' => $app['enabled'] ?? true,
                     'logo_url' => $app['logo_url'] ?? null,
+                    'icon' => $app['icon'] ?? null,
+                    'gradient' => $app['gradient'] ?? null,
                 ];
             }
         }
