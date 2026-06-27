@@ -9,48 +9,31 @@ use Illuminate\Routing\Controller;
 class SsoLogoutChainController extends Controller
 {
     /**
-     * Sequentially redirect the user's browser to each client's `/iam/logout`.
-     *
-     * Query param `index` selects which application to call next. After the
-     * last client is visited the user is redirected to the IAM homepage.
+     * Renders a page with hidden iframes to perform front-channel Single Sign-Out
+     * to all registered client applications in parallel.
      */
     public function __invoke(Request $request)
     {
-        $index = max(0, (int) $request->query('index', 0));
-
         $apps = Application::enabled()
             ->get()
             ->filter(fn(Application $a) => ! empty($a->logout_uri))
             ->values();
 
-        // Done — no clients to call or we've finished the chain
-        if ($index >= $apps->count()) {
-            return redirect('/');
+        // If no apps to log out from, immediately redirect to login page
+        if ($apps->isEmpty()) {
+            return redirect('/login');
         }
 
-        $app = $apps[$index];
-        $logoutUri = $app->logout_uri;
+        $logoutUris = $apps->map(function ($app) {
+            $separator = str_contains($app->logout_uri, '?') ? '&' : '?';
+            // Provide a dummy redirect url just to satisfy the client, 
+            // though the iframe will be hidden and discarded anyway.
+            return $app->logout_uri . $separator . 'request_id=' . uniqid('sso_chain_');
+        })->all();
 
-        if (! $logoutUri) {
-            return redirect(route('sso.logout.chain', ['index' => $index + 1]));
-        }
-
-        // Ask the client to return to the next index after it clears session
-        $next = route('sso.logout.chain', ['index' => $index + 1], true);
-
-        $separator = str_contains($logoutUri, '?') ? '&' : '?';
-        $requestId = uniqid('sso_chain_');
-        $target = $logoutUri . $separator . 'post_logout_redirect=' . urlencode($next) . '&request_id=' . urlencode($requestId);
-
-        // Log the redirect so we can correlate browser front-channel logout activity
-        \Illuminate\Support\Facades\Log::info('sso.logout_chain_redirect', [
-            'index' => $index,
-            'app_key' => $app->app_key ?? null,
-            'target' => $target,
-            'request_id' => $requestId,
+        return view('sso.logout', [
+            'logoutUris' => $logoutUris,
+            'redirectUrl' => url('/login'),
         ]);
-
-        // Use away() because target is an external URL (client app)
-        return redirect()->away($target);
     }
 }
