@@ -325,7 +325,7 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        // Backchannel logout is disabled; rely on token invalidation and remote verification instead.
-        return redirect('/login');
+        // Trigger front-channel Single Sign-Out chain
+        return redirect()->route('sso.logout.chain');
     }
 }
