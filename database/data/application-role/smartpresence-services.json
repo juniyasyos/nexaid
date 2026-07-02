@@ -1,0 +1,20 @@
+[
+    {
+        "slug": "super_admin",
+        "name": "Super Administrator",
+        "description": "Memiliki akses penuh untuk mengelola seluruh konfigurasi, pengguna, dan fitur pada sistem SMSP.",
+        "is_system": true
+    },
+    {
+        "slug": "admin",
+        "name": "Administrator",
+        "description": "Bertugas mengelola data operasional dan pengaturan utama pada sistem SMSP secara umum.",
+        "is_system": false
+    },
+    {
+        "slug": "sekretaris",
+        "name": "Sekretaris",
+        "description": "Bertugas mengelola administrasi, pencatatan, dan tugas kesekretariatan lainnya pada sistem SMSP.",
+        "is_system": false
+    }
+]

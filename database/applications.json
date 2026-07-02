@@ -1,0 +1,73 @@
+[
+  {
+    "app_key": "siimut",
+    "name": "SIIMUT - Sistem Informasi Manajemen Indikator Mutu Terpadu",
+    "description": "Pengelolaan indikator mutu, pelaporan capaian, monitoring kepatuhan, analisis tren, evaluasi kinerja",
+    "enabled": true,
+    "redirect_uris": [
+      "http://127.0.0.1:8088"
+    ],
+    "callback_url": "http://127.0.0.1:8088/sso/callback",
+    "backchannel_url": "http://127.0.0.1:8088",
+    "secret": "siimut_secret_key_123",
+    "logo_url": null,
+    "token_expiry": 3600
+  },
+  {
+    "app_key": "incident-reporting",
+    "name": "IKP - Incident Reporting System",
+    "description": "Pelaporan insiden, verifikasi laporan, investigasi kejadian, tindak lanjut rekomendasi, monitoring penyelesaian",
+    "enabled": true,
+    "redirect_uris": [
+      "http://127.0.0.1:8200"
+    ],
+    "callback_url": "http://127.0.0.1:8200/sso/callback",
+    "backchannel_url": "http://127.0.0.1:8200",
+    "secret": "ikp_secret_key_789",
+    "logo_url": null,
+    "token_expiry": 7200
+  },
+  {
+    "app_key": "lms-services",
+    "name": "LMS - Learning Management System",
+    "description": "Manajemen pembelajaran, pelatihan pegawai, materi kursus, pencatatan kompetensi, evaluasi peserta",
+    "enabled": true,
+    "redirect_uris": [
+      "http://127.0.0.1:7100"
+    ],
+    "callback_url": "http://127.0.0.1:7100/sso/callback",
+    "backchannel_url": "http://127.0.0.1:7100",
+    "secret": "lms_secret_key_789",
+    "logo_url": null,
+    "token_expiry": 7200
+  },
+  {
+    "app_key": "smartpresence-services",
+    "name": "SmartPresence",
+    "description": "Presensi digital, pencatatan kehadiran, monitoring jam kerja, validasi absensi, rekapitulasi pegawai",
+    "enabled": true,
+    "redirect_uris": [
+      "http://localhost:3000",
+      "http://127.0.0.1:7200"
+    ],
+    "callback_url": "http://127.0.0.1:7200/sso/callback",
+    "backchannel_url": "http://127.0.0.1:7200",
+    "secret": "smartpresence_secret_key_123",
+    "logo_url": null,
+    "token_expiry": 7200
+  },
+  {
+    "app_key": "rbv-services",
+    "name": "RBV - Resource Booking & Visitor",
+    "description": "Reservasi ruangan, peminjaman fasilitas, pengelolaan aset, jadwal penggunaan, pencatatan kunjungan",
+    "enabled": true,
+    "redirect_uris": [
+      "http://127.0.0.1:7300"
+    ],
+    "callback_url": "http://127.0.0.1:7300/sso/callback",
+    "backchannel_url": "http://127.0.0.1:7300",
+    "secret": "rbv_secret_key_456",
+    "logo_url": null,
+    "token_expiry": 7300
+  }
+]

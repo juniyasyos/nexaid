@@ -11,6 +11,8 @@ interface UseApplicationsProps {
         app_url?: string;
         enabled: boolean;
         logo_url?: string | null;
+        icon?: string | null;
+        gradient?: string | null;
     }>;
     userApplications?: UserApplication[];
 }
