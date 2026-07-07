@@ -2,8 +2,8 @@
 
 namespace App\Filament\Panel\Widgets;
 
-use App\Domain\Iam\Models\SsoAccessLog;
 use App\Domain\Iam\Models\Application;
+use App\Domain\Iam\Models\SsoAccessLog;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Carbon;
@@ -11,11 +11,9 @@ use Illuminate\Support\Carbon;
 class TopApplicationsChart extends ChartWidget
 {
     protected ?string $heading = 'Akses Aplikasi per Hari (Top 5)';
-    protected static ?int $sort = 60;
-    protected int | string | array $columnSpan = [
-        'md' => 1,
-        'xl' => 1,
-    ];
+    protected static ?int $sort = 50;
+    protected int|string|array $columnSpan = 'full';
+
     public ?string $filter = 'month';
 
     protected function getFilters(): ?array
@@ -58,7 +56,7 @@ class TopApplicationsChart extends ChartWidget
             ->get();
 
         $appNames = Application::whereIn('id', $topApps)->pluck('name', 'id');
-        
+
         // Buat rentang tanggal (X-Axis)
         $dates = [];
         $current = $startDate->copy();
@@ -70,14 +68,14 @@ class TopApplicationsChart extends ChartWidget
 
         $datasets = [];
         $colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
-        
+
         foreach ($topApps as $index => $appId) {
             $appData = [];
             foreach ($dates as $date) {
                 $count = $dailyData->where('application_id', $appId)->where('date', $date)->first();
                 $appData[] = $count ? $count->total : 0;
             }
-            
+
             $datasets[] = [
                 'label' => $appNames[$appId] ?? 'Unknown',
                 'data' => $appData,
