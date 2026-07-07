@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 class TopRolesChart extends ChartWidget
 {
     protected ?string $heading = 'Top Roles Used';
-    protected static ?int $sort = 3;
+    protected static ?int $sort = 70;
     protected int | string | array $columnSpan = [
         'md' => 1,
         'xl' => 1,

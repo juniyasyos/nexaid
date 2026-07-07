@@ -10,11 +10,8 @@ use Illuminate\Support\Facades\DB;
 class TopAccessProfilesChart extends ChartWidget
 {
     protected ?string $heading = 'Top Access Profiles';
-    protected static ?int $sort = 2;
-    protected int | string | array $columnSpan = [
-        'md' => 1,
-        'xl' => 1,
-    ];
+    protected static ?int $sort = 50;
+    protected int | string | array $columnSpan = 'full';
     public ?string $filter = 'month';
 
     protected function getFilters(): ?array

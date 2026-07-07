@@ -11,7 +11,7 @@ use Illuminate\Support\Carbon;
 class TopApplicationsChart extends ChartWidget
 {
     protected ?string $heading = 'Akses Aplikasi per Hari (Top 5)';
-    protected static ?int $sort = 1;
+    protected static ?int $sort = 60;
     protected int | string | array $columnSpan = [
         'md' => 1,
         'xl' => 1,
