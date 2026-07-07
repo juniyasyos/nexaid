@@ -15,13 +15,37 @@ class TopAccessProfilesChart extends ChartWidget
         'md' => 1,
         'xl' => 1,
     ];
+    public ?string $filter = 'month';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'today' => 'Hari Ini',
+            'week' => '7 Hari Terakhir',
+            'month' => '30 Hari Terakhir',
+            'year' => 'Tahun Ini',
+            'all' => 'Semua Waktu',
+        ];
+    }
 
     protected function getData(): array
     {
-        $data = SsoAccessLog::query()
+        $query = SsoAccessLog::query()
             ->select('access_profile_id', DB::raw('count(*) as total'))
-            ->whereNotNull('access_profile_id')
-            ->groupBy('access_profile_id')
+            ->whereNotNull('access_profile_id');
+
+        if ($this->filter !== 'all') {
+            $startDate = match ($this->filter) {
+                'today' => now()->startOfDay(),
+                'week' => now()->subDays(7)->startOfDay(),
+                'month' => now()->subDays(30)->startOfDay(),
+                'year' => now()->startOfYear(),
+                default => now()->subDays(30)->startOfDay(),
+            };
+            $query->where('accessed_at', '>=', $startDate);
+        }
+
+        $data = $query->groupBy('access_profile_id')
             ->orderByDesc('total')
             ->limit(5)
             ->get();

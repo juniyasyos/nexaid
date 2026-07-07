@@ -15,13 +15,37 @@ class TopRolesChart extends ChartWidget
         'md' => 1,
         'xl' => 1,
     ];
+    public ?string $filter = 'month';
+
+    protected function getFilters(): ?array
+    {
+        return [
+            'today' => 'Hari Ini',
+            'week' => '7 Hari Terakhir',
+            'month' => '30 Hari Terakhir',
+            'year' => 'Tahun Ini',
+            'all' => 'Semua Waktu',
+        ];
+    }
 
     protected function getData(): array
     {
-        $data = SsoAccessLog::query()
+        $query = SsoAccessLog::query()
             ->select('role_id', DB::raw('count(*) as total'))
-            ->whereNotNull('role_id')
-            ->groupBy('role_id')
+            ->whereNotNull('role_id');
+
+        if ($this->filter !== 'all') {
+            $startDate = match ($this->filter) {
+                'today' => now()->startOfDay(),
+                'week' => now()->subDays(7)->startOfDay(),
+                'month' => now()->subDays(30)->startOfDay(),
+                'year' => now()->startOfYear(),
+                default => now()->subDays(30)->startOfDay(),
+            };
+            $query->where('accessed_at', '>=', $startDate);
+        }
+
+        $data = $query->groupBy('role_id')
             ->orderByDesc('total')
             ->limit(5)
             ->get();
