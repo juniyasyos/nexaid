@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class TopAccessProfilesChart extends ChartWidget
 {
-    protected static ?string $heading = 'Top Access Profiles';
+    protected ?string $heading = 'Top Access Profiles';
     protected static ?int $sort = 2;
     protected int | string | array $columnSpan = [
         'md' => 1,

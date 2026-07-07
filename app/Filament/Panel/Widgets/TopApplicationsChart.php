@@ -9,7 +9,7 @@ use Illuminate\Support\Facades\DB;
 
 class TopApplicationsChart extends ChartWidget
 {
-    protected static ?string $heading = 'Top Applications Accessed';
+    protected ?string $heading = 'Top Applications Accessed';
     protected static ?int $sort = 1;
     protected int | string | array $columnSpan = [
         'md' => 1,
