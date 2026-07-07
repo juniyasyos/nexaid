@@ -101,6 +101,10 @@
             "@php artisan admin:pass",
             "@php artisan db:seed",
             "@php artisan optimize:clear"
+        ],
+        "prod-setup": [
+            "@php artisan db:wipe",
+            "mysql -h localhost -u juni -ppassword --max_allowed_packet=512M --net_buffer_length=16384 iam < ./database/schema/iam_db.sql"
         ]
     },
     "extra": {

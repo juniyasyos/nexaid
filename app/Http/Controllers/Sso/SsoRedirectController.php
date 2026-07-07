@@ -88,6 +88,27 @@ class SsoRedirectController extends Controller
                 'callback_url' => $application->callback_url,
             ]);
 
+            try {
+                $roles = $request->user()->effectiveApplicationRoles()->where('application_id', $application->id)->get();
+                $roleId = $roles->first()?->id;
+
+                $accessProfile = $request->user()->accessProfiles()->where('is_active', true)->first();
+                $accessProfileId = $accessProfile?->id;
+
+                \App\Domain\Iam\Models\SsoAccessLog::create([
+                    'user_id' => $request->user()->id,
+                    'application_id' => $application->id,
+                    'access_profile_id' => $accessProfileId,
+                    'role_id' => $roleId,
+                    'ip_address' => $request->ip(),
+                    'session_id' => $request->hasSession() ? $request->session()->getId() : null,
+                ]);
+            } catch (\Exception $e) {
+                Log::error('[IAM] SSO: Failed to write access log', [
+                    'error' => $e->getMessage()
+                ]);
+            }
+
             // Build token using TokenBuilder (same as refresh) for signature consistency
             // Add app_key to extra field to preserve it across token lifecycle
             $extra = ['app' => $application->app_key];

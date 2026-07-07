@@ -26,4 +26,5 @@ yarn-error.log
 /.vscode
 /.zed
 /packages
+/database/schema
 /database/data/user.json
