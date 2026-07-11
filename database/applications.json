@@ -47,8 +47,7 @@
     "description": "Presensi digital, pencatatan kehadiran, monitoring jam kerja, validasi absensi, rekapitulasi pegawai",
     "enabled": true,
     "redirect_uris": [
-      "http://localhost:3000",
-      "http://127.0.0.1:7200"
+      "http://127.0.0.1:7250"
     ],
     "callback_url": "http://127.0.0.1:7200/sso/callback",
     "backchannel_url": "http://127.0.0.1:7200",
