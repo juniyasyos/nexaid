@@ -58,7 +58,7 @@ class UsersRelationManager extends RelationManager
                     ->schema(fn(AttachAction $action): array => [
                         Select::make('recordId')
                             ->label('User')
-                            ->options(User::query()->where('active', true)->pluck('name', 'id'))
+                            ->options(User::query()->where('status', 'active')->pluck('name', 'id'))
                             ->searchable(['name', 'email'])
                             ->required()
                             ->native(false)

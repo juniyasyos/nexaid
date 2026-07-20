@@ -18,7 +18,7 @@ class UserObserver
         'nip',
         'name',
         'email',
-        'active',
+        'status',
     ];
 
     public function __construct()
@@ -45,7 +45,7 @@ class UserObserver
             'nip' => $user->nip,
             'name' => $user->name,
             'email' => $user->email,
-            'active' => $user->active,
+            'status' => $user->status,
             'created' => $user->wasRecentlyCreated,
             'changed' => $user->wasChanged($this->syncAttributes) ? $user->getChanges() : [],
             'original' => $originalData,
@@ -76,7 +76,7 @@ class UserObserver
             'nip' => $user->nip,
             'name' => $user->name,
             'email' => $user->email,
-            'active' => $user->active,
+            'status' => $user->status,
             'changed_attributes' => $user->getChanges(),
             'timestamp' => now()->toDateTimeString(),
         ]);

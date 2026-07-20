@@ -42,7 +42,7 @@ class TestUserSync extends Command
                     'name' => 'Test User',
                     'email' => 'test@example.com',
                     'password' => bcrypt('password'),
-                    'active' => true,
+                    'status' => 'active',
                 ]
             );
             $this->info("   ✅ User created: {$user->name} (NIP: {$user->nip}, ID: {$user->id})");
