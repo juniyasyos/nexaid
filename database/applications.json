@@ -5,10 +5,10 @@
     "description": "Pengelolaan indikator mutu, pelaporan capaian, monitoring kepatuhan, analisis tren, evaluasi kinerja",
     "enabled": true,
     "redirect_uris": [
-      "http://127.0.0.1:8088"
+      "http://192.168.1.9:8010"
     ],
-    "callback_url": "http://127.0.0.1:8088/sso/callback",
-    "backchannel_url": "http://127.0.0.1:8088",
+    "callback_url": "http://192.168.1.9:8010/sso/callback",
+    "backchannel_url": "http://192.168.1.9:8010",
     "secret": "siimut_secret_key_123",
     "logo_url": null,
     "token_expiry": 3600
@@ -19,10 +19,10 @@
     "description": "Pelaporan insiden, verifikasi laporan, investigasi kejadian, tindak lanjut rekomendasi, monitoring penyelesaian",
     "enabled": true,
     "redirect_uris": [
-      "http://127.0.0.1:8200"
+      "http://192.168.1.9:8210"
     ],
-    "callback_url": "http://127.0.0.1:8200/sso/callback",
-    "backchannel_url": "http://127.0.0.1:8200",
+    "callback_url": "http://192.168.1.9:8210/sso/callback",
+    "backchannel_url": "http://192.168.1.9:8210",
     "secret": "ikp_secret_key_789",
     "logo_url": null,
     "token_expiry": 7200
@@ -33,10 +33,10 @@
     "description": "Manajemen pembelajaran, pelatihan pegawai, materi kursus, pencatatan kompetensi, evaluasi peserta",
     "enabled": true,
     "redirect_uris": [
-      "http://127.0.0.1:7100"
+      "http://192.168.1.9:7110"
     ],
-    "callback_url": "http://127.0.0.1:7100/sso/callback",
-    "backchannel_url": "http://127.0.0.1:7100",
+    "callback_url": "http://192.168.1.9:7110/sso/callback",
+    "backchannel_url": "http://192.168.1.9:7110",
     "secret": "lms_secret_key_789",
     "logo_url": null,
     "token_expiry": 7200
@@ -47,24 +47,24 @@
     "description": "Presensi digital, pencatatan kehadiran, monitoring jam kerja, validasi absensi, rekapitulasi pegawai",
     "enabled": true,
     "redirect_uris": [
-      "http://127.0.0.1:7250"
+      "http://192.168.1.9:7250"
     ],
-    "callback_url": "http://127.0.0.1:7200/sso/callback",
-    "backchannel_url": "http://127.0.0.1:7200",
+    "callback_url": "http://192.168.1.9:7250/sso/callback",
+    "backchannel_url": "http://192.168.1.9:7250",
     "secret": "smartpresence_secret_key_123",
     "logo_url": null,
     "token_expiry": 7200
   },
   {
     "app_key": "rbv-services",
-    "name": "RBV - Resource Booking & Visitor",
-    "description": "Reservasi ruangan, peminjaman fasilitas, pengelolaan aset, jadwal penggunaan, pencatatan kunjungan",
+    "name": "RBV - Ruang Baca Virtual",
+    "description": "Akses dan pengelolaan koleksi bacaan digital, pencarian referensi, serta layanan ruang baca virtual",
     "enabled": true,
     "redirect_uris": [
-      "http://127.0.0.1:7300"
+      "http://192.168.1.9:7310"
     ],
-    "callback_url": "http://127.0.0.1:7300/sso/callback",
-    "backchannel_url": "http://127.0.0.1:7300",
+    "callback_url": "http://192.168.1.9:7310/sso/callback",
+    "backchannel_url": "http://192.168.1.9:7310",
     "secret": "rbv_secret_key_456",
     "logo_url": null,
     "token_expiry": 7300
@@ -75,10 +75,10 @@
     "description": "Aplikasi Template 1",
     "enabled": true,
     "redirect_uris": [
-      "http://127.0.0.1:8000"
+      "http://192.168.1.9:8000"
     ],
-    "callback_url": "http://127.0.0.1:8000/sso/callback",
-    "backchannel_url": "http://127.0.0.1:8000",
+    "callback_url": "http://192.168.1.9:8000/sso/callback",
+    "backchannel_url": "http://192.168.1.9:8000",
     "secret": "template1_secret_key_123",
     "logo_url": null,
     "token_expiry": 3600
