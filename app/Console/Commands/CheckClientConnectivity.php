@@ -10,54 +10,103 @@ use Illuminate\Support\Facades\Http;
 class CheckClientConnectivity extends Command
 {
     protected $signature = 'iam:check-client
-                            {app_key=siimut : app_key of the client application to check}
-                            {--role-sync-mode= : override role sync mode (pull|push)}
-                            {--no-auth : skip signature/jwt header generation for basic connectivity}';
+                            {app_key? : app_key dari aplikasi client yang ingin dicek. Kosongkan atau gunakan --all untuk mengecek seluruh aplikasi di DB}
+                            {--all : Cek konektivitas seluruh aplikasi yang ada di database}
+                            {--no-auth : Skip penambahan header JWT Bearer / signature}';
 
-    protected $description = 'Check connectivity to a client application via backchannel endpoints';
+    protected $description = 'Cek konektivitas backchannel ke container/instance aplikasi client secara READ-ONLY (Tanpa membuat/mengubah data DB)';
 
     public function handle(): int
     {
-        $appKey = $this->argument('app_key');
+        $appKeyOption = $this->argument('app_key');
+        $checkAll = $this->option('all') || empty($appKeyOption);
         $noAuth = $this->option('no-auth');
 
-        $application = Application::where('app_key', $appKey)->first();
-
-        if (! $application) {
-            $this->error("Application with app_key='{$appKey}' not found.");
-            return self::FAILURE;
+        /** @var \Illuminate\Database\Eloquent\Collection<int, Application> $applications */
+        if ($checkAll) {
+            $applications = Application::all();
+            if ($applications->isEmpty()) {
+                $this->warn('Tidak ada aplikasi yang ditemukan di database.');
+                return self::SUCCESS;
+            }
+        } else {
+            $application = Application::where('app_key', $appKeyOption)->first();
+            if (! $application) {
+                $this->error("Aplikasi dengan app_key='{$appKeyOption}' tidak ditemukan di database.");
+                return self::FAILURE;
+            }
+            $applications = collect([$application]);
         }
 
-        $this->info("Checking client connectivity for app: {$application->app_key} (id: {$application->id})");
-        $this->line('Client callback URL: ' . $application->callback_url);
-        $this->line('Client backchannel URL: ' . $application->backchannel_url);
-
-        $pipelines = [
-            [
-                'name' => 'health',
-                'method' => 'GET',
-                'url' => $this->buildUrl($application, '/api/iam/health'),
-                'body' => null,
-            ],
-        ];
+        $this->info("Memeriksa koneksi backchannel ke container/instance aplikasi (READ-ONLY mode)...");
+        $this->line("");
 
         $results = [];
+        $overallSuccess = true;
 
-        foreach ($pipelines as $endpoint) {
-            [$ok, $status, $message] = $this->executeEndpoint($application, $endpoint, $noAuth);
+        foreach ($applications as $application) {
+            $base = $application->backchannel_url ?: $application->callback_url;
+
+            if (! $base) {
+                $results[] = [
+                    'App Key' => $application->app_key,
+                    'Nama Aplikasi' => $application->name,
+                    'URL Backchannel' => 'Belum dikonfigurasi',
+                    'Status' => 'FAIL',
+                    'HTTP Code' => 'N/A',
+                    'Keterangan / Diagnosa' => 'URL backchannel_url maupun callback_url tidak diisi di DB',
+                ];
+                $overallSuccess = false;
+                continue;
+            }
+
+            // Endpoints to check
+            $endpoints = [
+                '/api/iam/health',
+                '/api/iam/client-roles',
+            ];
+
+            $appPassed = false;
+            $lastStatus = 'N/A';
+            $lastInfo = '';
+
+            foreach ($endpoints as $endpointPath) {
+                $endpointUrl = $this->buildUrl($application, $endpointPath);
+                [$ok, $status, $message] = $this->executeEndpoint($application, $endpointUrl, $noAuth);
+                $lastStatus = $status;
+                $lastInfo = $message;
+
+                if ($ok) {
+                    $appPassed = true;
+                    $lastInfo = "Endpoint {$endpointPath} merespons OK";
+                    break;
+                }
+            }
+
+            if (! $appPassed) {
+                $overallSuccess = false;
+            }
+
             $results[] = [
-                'Endpoint' => $endpoint['name'],
-                'Method' => $endpoint['method'],
-                'URL' => $endpoint['url'],
-                'Status' => $status,
-                'Result' => $ok ? 'OK' : 'FAIL',
-                'Info' => $message,
+                'App Key' => $application->app_key,
+                'Nama Aplikasi' => $application->name,
+                'URL Backchannel' => $base,
+                'Status' => $appPassed ? 'OK' : 'FAIL',
+                'HTTP Code' => $lastStatus,
+                'Keterangan / Diagnosa' => mb_strimwidth($lastInfo, 0, 85, '...'),
             ];
         }
 
-        $this->table(array_keys($results[0]), $results);
+        $this->table(['App Key', 'Nama Aplikasi', 'URL Backchannel', 'Status', 'HTTP Code', 'Keterangan / Diagnosa'], $results);
 
-        return collect($results)->every(fn($r) => $r['Result'] === 'OK') ? self::SUCCESS : self::FAILURE;
+        if (!$overallSuccess) {
+            $this->warn("\nTip Diagnosa Koneksi Container:");
+            $this->line("1. Pastikan nama host / IP container pada 'backchannel_url' di DB dapat dijangkau dari container IAM ini.");
+            $this->line("2. Periksa apakah port aplikasi client (misal :8000, :8001) terbuka di jaringan Docker / network container.");
+            $this->line("3. Pastikan endpoint /api/iam/health atau /api/iam/client-roles sudah diimplementasikan di aplikasi client.");
+        }
+
+        return $overallSuccess ? self::SUCCESS : self::FAILURE;
     }
 
     protected function buildUrl(Application $application, string $path): string
@@ -72,33 +121,25 @@ class CheckClientConnectivity extends Command
         return $base . $path . '?app_key=' . urlencode($application->app_key);
     }
 
-    protected function executeEndpoint(Application $application, array $endpoint, bool $noAuth): array
+    protected function executeEndpoint(Application $application, string $url, bool $noAuth): array
     {
         $headers = ['Accept' => 'application/json'];
 
         if (! $noAuth) {
-            // Health check via bearer token verifying client JWT support
             $token = app(JWTTokenService::class)->generateBackchannelToken($application);
             $headers['Authorization'] = 'Bearer ' . $token;
         }
 
-
         try {
-            $request = Http::withHeaders($headers)->timeout(15);
-
-            if ($endpoint['method'] === 'POST') {
-                $response = $request->post($endpoint['url'], $endpoint['body']);
-            } else {
-                $response = $request->get($endpoint['url']);
-            }
+            $response = Http::withHeaders($headers)->timeout(8)->get($url);
 
             return [
                 $response->successful(),
                 $response->status(),
-                $response->body(),
+                $response->body() ?: "HTTP Status {$response->status()}",
             ];
         } catch (\Throwable $e) {
-            return [false, 'N/A', $e->getMessage()];
+            return [false, 'ERR', $e->getMessage()];
         }
     }
 }
