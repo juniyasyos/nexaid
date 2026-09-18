@@ -19,8 +19,8 @@ class CheckClientConnectivity extends Command
 
     public function handle(): int
     {
-        $appKeyOption = $this->argument('app_key');
-        $checkAll = $this->option('all') || empty($appKeyOption);
+        $appKeyOption = `$this->argument('app_key');
+        $checkAll = $this->option('all') || empty($appKeyOption) || strtolower((string) $appKeyOption) === 'all';
         $noAuth = $this->option('no-auth');
 
         /** @var \Illuminate\Database\Eloquent\Collection<int, Application> $applications */
