@@ -19,7 +19,7 @@ class CheckClientConnectivity extends Command
 
     public function handle(): int
     {
-        $appKeyOption = `$this->argument('app_key');
+        $appKeyOption = $this->argument('app_key');
         $checkAll = $this->option('all') || empty($appKeyOption) || strtolower((string) $appKeyOption) === 'all';
         $noAuth = $this->option('no-auth');
 
