@@ -16,6 +16,11 @@
                 {
                     "slug": "super_admin"
                 }
+            ],
+            "rbv-services": [
+                {
+                    "slug": "super_admin"
+                }
             ]
         }
     },
@@ -92,6 +97,21 @@
                     "slug": "pelapor",
                     "name": "Pelapor Insiden",
                     "description": "Dapat membuat dan mengelola laporan insiden sesuai tugas dan kewenangan pada unit kerja masing-masing."
+                }
+            ]
+        }
+    },
+    {
+        "profile": {
+            "slug": "sekretaris",
+            "name": "Sekretaris",
+            "description": "Akses profil khusus untuk Sekretaris pada aplikasi RBV (Ruang Baca Virtual) untuk pengelolaan administrasi, jadwal pemesanan, dan alur persuratan.",
+            "is_system": false
+        },
+        "apps": {
+            "rbv-services": [
+                {
+                    "slug": "sekretaris"
                 }
             ]
         }
