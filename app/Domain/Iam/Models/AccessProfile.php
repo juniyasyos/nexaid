@@ -73,6 +73,10 @@ class AccessProfile extends Model
     {
         static::creating(function (self $accessProfile): void {
             $accessProfile->key_hash = self::generateKeyHash();
+
+            if (empty($accessProfile->slug) && filled($accessProfile->name)) {
+                $accessProfile->slug = self::generateUniqueSlug($accessProfile->name);
+            }
         });
 
         static::updating(function (self $accessProfile): void {
@@ -80,6 +84,23 @@ class AccessProfile extends Model
                 $accessProfile->key_hash = $accessProfile->getOriginal('key_hash');
             }
         });
+    }
+
+    public static function generateUniqueSlug(string $name): string
+    {
+        $base = Str::slug($name, '_');
+        if (empty($base)) {
+            $base = 'profile';
+        }
+        $slug = $base;
+        $i = 1;
+
+        while (static::where('slug', $slug)->exists()) {
+            $i++;
+            $slug = $base . '_' . $i;
+        }
+
+        return $slug;
     }
 
     public static function generateKeyHash(): string

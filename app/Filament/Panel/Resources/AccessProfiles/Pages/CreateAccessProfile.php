@@ -22,6 +22,10 @@ class CreateAccessProfile extends CreateRecord
 
         unset($data['roles'], $data['role_ids'], $data['app_roles']);
 
+        if (empty($data['slug']) && ! empty($data['name'])) {
+            $data['slug'] = \App\Domain\Iam\Models\AccessProfile::generateUniqueSlug($data['name']);
+        }
+
         return $data;
     }
 

@@ -64,13 +64,13 @@ class AccessProfileForm
 
                                     TextInput::make('slug')
                                         ->label('Bundle Slug')
-                                        ->required()
                                         ->hidden()
+                                        ->dehydrated()
                                         ->maxLength(64)
                                         ->rules(['regex:/^[a-z0-9\-_]+$/'])
                                         ->placeholder('quality_team, manajemen_rs, it_support')
                                         ->helperText('Used internally by the IAM system. Lowercase letters, numbers, dashes and underscores only.')
-                                        ->dehydrateStateUsing(fn(string $state): string => Str::lower($state))
+                                        ->dehydrateStateUsing(fn(?string $state): ?string => $state ? Str::lower($state) : null)
                                         ->prefixIcon('heroicon-m-finger-print'),
                                 ]),
 
