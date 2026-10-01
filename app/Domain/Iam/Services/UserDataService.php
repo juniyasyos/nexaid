@@ -263,6 +263,9 @@ class UserDataService
     /**
      * Get user's applications organized by access profiles.
      * Structure: access profile -> list of applications with roles
+     *
+     * Each application appears at most once per profile, even if the profile
+     * contains multiple roles for that application.
      */
     public function getUserApplicationsByAccessProfile(User $user): array
     {
@@ -278,7 +281,10 @@ class UserDataService
         $result = [];
 
         foreach ($profiles as $profile) {
-            $applications = [];
+            // Key by app_key to deduplicate: a profile may have multiple roles
+            // for the same app (two bundles share one app, or one bundle has two
+            // roles on the same app). Dashboard only needs the app listed once.
+            $appsByKey = [];
 
             foreach ($profile->roles as $role) {
                 $app = $role->application;
@@ -287,38 +293,47 @@ class UserDataService
                     continue;
                 }
 
+                $appKey = $app->app_key;
+
+                if (isset($appsByKey[$appKey])) {
+                    // App already added for this profile — skip duplicate.
+                    continue;
+                }
+
                 $primaryUrl = $this->getPrimaryUrl($app->redirect_uris);
 
-                $applications[] = [
-                    'id' => $app->id,
-                    'app_key' => $app->app_key,
-                    'name' => $app->name,
-                    'description' => $app->description,
-                    'enabled' => $app->enabled,
-                    'logo_url' => $app->logo_url,
-                    'icon' => $app->icon,
-                    'gradient' => $app->gradient,
-                    'app_url' => $primaryUrl,
+                $appsByKey[$appKey] = [
+                    'id'            => $app->id,
+                    'app_key'       => $app->app_key,
+                    'name'          => $app->name,
+                    'description'   => $app->description,
+                    'enabled'       => $app->enabled,
+                    'logo_url'      => $app->logo_url,
+                    'icon'          => $app->icon,
+                    'gradient'      => $app->gradient,
+                    'app_url'       => $primaryUrl,
                     'redirect_uris' => $app->redirect_uris ?? [],
-                    'role' => [
-                        'id' => $role->id,
-                        'slug' => $role->slug,
-                        'name' => $role->name,
+                    'role'          => [
+                        'id'          => $role->id,
+                        'slug'        => $role->slug,
+                        'name'        => $role->name,
                         'description' => $role->description,
                     ],
                 ];
             }
 
+            $applications = array_values($appsByKey);
+
             if (!empty($applications)) {
                 $result[] = [
-                    'id' => $profile->id,
-                    'slug' => $profile->slug,
-                    'name' => $profile->name,
-                    'description' => $profile->description,
-                    'is_system' => $profile->is_system,
-                    'is_active' => $profile->is_active,
+                    'id'                 => $profile->id,
+                    'slug'               => $profile->slug,
+                    'name'               => $profile->name,
+                    'description'        => $profile->description,
+                    'is_system'          => $profile->is_system,
+                    'is_active'          => $profile->is_active,
                     'applications_count' => count($applications),
-                    'applications' => $applications,
+                    'applications'       => $applications,
                 ];
             }
         }

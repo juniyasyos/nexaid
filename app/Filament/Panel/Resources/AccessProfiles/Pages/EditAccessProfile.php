@@ -59,7 +59,10 @@ class EditAccessProfile extends EditRecord
     {
         $roleIds = $data['app_roles'] ?? [];
 
-        $this->tempRoleIds = array_values(array_unique(array_filter($roleIds)));
+        // app_roles is keyed by application_id → role_id; flatten to plain list.
+        $this->tempRoleIds = array_values(array_unique(array_filter(
+            is_array($roleIds) ? array_values($roleIds) : []
+        )));
 
         unset($data['roles'], $data['role_ids'], $data['app_roles']);
 

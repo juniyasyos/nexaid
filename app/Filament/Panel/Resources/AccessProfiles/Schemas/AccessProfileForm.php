@@ -115,22 +115,7 @@ class AccessProfileForm
 
                         Section::make('Included Roles')
                             ->description('Pilih role aplikasi yang akan dimasukkan ke bundle ini.')
-                            ->schema(function () {
-                                $apps = \App\Domain\Iam\Models\Application::with('roles')->get();
-                                $fields = [];
-                                foreach ($apps as $app) {
-                                    if ($app->roles->isEmpty()) {
-                                        continue;
-                                    }
-                                    
-                                    $fields[] = ToggleButtons::make("app_roles.{$app->id}")
-                                        ->label($app->name)
-                                        ->options($app->roles->pluck('name', 'id')->toArray())
-                                        ->inline()
-                                        ->helperText('Pilih maksimal satu role untuk aplikasi ini.');
-                                }
-                                return $fields;
-                            })
+                            ->schema(static::buildRoleFields())
                             ->columns(1),
 
                         Section::make('Documentation')
@@ -145,5 +130,35 @@ class AccessProfileForm
                             ]),
                     ]),
             ]);
+    }
+
+    /**
+     * Build the list of ToggleButtons fields for each application's roles.
+     *
+     * DB query is executed here — outside any schema closure — so Filament's
+     * component $container is guaranteed to be initialized before getStatePath()
+     * is ever called on the returned components.
+     *
+     * @return array<\Filament\Forms\Components\ToggleButtons>
+     */
+    public static function buildRoleFields(): array
+    {
+        $apps = \App\Domain\Iam\Models\Application::with('roles')->get();
+
+        $fields = [];
+
+        foreach ($apps as $app) {
+            if ($app->roles->isEmpty()) {
+                continue;
+            }
+
+            $fields[] = ToggleButtons::make("app_roles.{$app->id}")
+                ->label($app->name)
+                ->options($app->roles->pluck('name', 'id')->toArray())
+                ->inline()
+                ->helperText('Pilih maksimal satu role untuk aplikasi ini.');
+        }
+
+        return $fields;
     }
 }
